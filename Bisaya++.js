@@ -13,20 +13,50 @@ const RPAREN = "RPAREN"
 
 //Error
 class Error{
-    constructor(error_name, details) {
+    constructor(pos_start, pos_end, error_name, details) {
+        this.pos_start = pos_start
+        this.pos_end = pos_end
         this.error_name = error_name;
         this.details = details
     }
     as_string() {
         let result = `${this.error_name}: ${this.details}`
+        result += `File ${this.pos_start.fn}, line ${this.pos_start.ln + 1}`
         return result
     }
 }
 class IllegalCharError extends Error{
-    constructor(details) {
-        super("Illegal Character", details)
+    constructor(pos_start, pos_end,details) {
+        super(pos_start, pos_end,"Illegal Character", details)
     }
 }
+//Position
+class Position {
+    constructor(idx, ln, col, fn, ftxt) {
+        this.idx = idx;
+        this.ln = ln;
+        this.col = col;
+        this.fn = fn;
+        this.ftxt = ftxt;
+    }
+
+    advance(current_char) {
+        this.idx += 1;
+        this.col += 1;
+
+        if (current_char === '\n') {
+            this.ln += 1;
+            this.col = 0;
+        }
+
+        return this;
+    }
+
+    copy() {
+        return new Position(this.idx, this.ln, this.col, this.fn, this.ftxt);
+    }
+}
+
 //Lexer creation
 class Token{
     constructor(type,value = null) {
@@ -39,15 +69,16 @@ class Token{
 }
 
 class Lexer{
-    constructor(text) {
+    constructor(fn, text) {
+        this.fn = fn
         this.text = text
-        this.pos = -1
+        this.pos = new Position(-1,0,-1,fn,text)
         this.current_char = null
         this.advance() 
     }
     advance() {
-        this.pos += 1
-        this.current_char = this.pos < this.text.length ? this.text[this.pos]: null
+        this.pos.advance(this.current_char)
+        this.current_char = this.pos.idx < this.text.length ? this.text[this.pos.idx]: null
     }
     make_tokens() {
         let tokens = []
@@ -84,9 +115,10 @@ class Lexer{
                 this.advance()
             }
             else {
+                let pos_start = this.pos.copy();
                 let char = this.current_char
                 this.advance()
-                return {tokens: [], error: new IllegalCharError("'" + char + "'") }
+                return {tokens: [], error: new IllegalCharError(pos_start,this.pos,"'" + char + "'") }
             }
 
         }
@@ -120,8 +152,8 @@ class Lexer{
 }
 
 //RUN
-function run(text) {
-    let lexer = new Lexer(text); 
+function run(fn,text) {
+    let lexer = new Lexer(fn,text); 
     let result = lexer.make_tokens();
 
     return [result.tokens,result.error]
