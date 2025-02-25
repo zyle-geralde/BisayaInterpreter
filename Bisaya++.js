@@ -18,7 +18,7 @@ class Error{
         this.details = details
     }
     as_string() {
-        result = `${this.error_name}: ${this.details}`
+        let result = `${this.error_name}: ${this.details}`
         return result
     }
 }
@@ -120,12 +120,11 @@ class Lexer{
 }
 
 //RUN
-function run() {
-    let text = prompt("Enter expression: ")
-    lexer = new Lexer(text)
-    lexer_data = lexer.make_tokens()
+function run(text) {
+    let lexer = new Lexer(text); 
+    let result = lexer.make_tokens();
 
-    return lexer_data
+    return [result.tokens,result.error]
 }
-console.log(run())
 
+module.exports = { run };
