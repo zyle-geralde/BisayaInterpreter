@@ -120,11 +120,12 @@ class Lexer{
 }
 
 //RUN
-function run(text) {
+function run() {
+    let text = prompt("Enter expression: ")
     lexer = new Lexer(text)
     lexer_data = lexer.make_tokens()
 
     return lexer_data
 }
-
+console.log(run())
 
