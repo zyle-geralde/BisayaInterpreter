@@ -204,6 +204,8 @@ class Lexer{
 class NumberNode {
     constructor(tok) {
         this.tok = tok;
+        this.pos_start = this.tok.pos_start
+        this.pos_end = this.tok.pos_end
     }
 
     toString() {
@@ -216,6 +218,8 @@ class BinOpNode {
         this.left_node = left_node;
         this.op_tok = op_tok;
         this.right_node = right_node;
+        this.pos_start = this.left_node.pos_start
+        this.pos_end = this.right_node.pos_end
     }
 
     toString() {
@@ -227,6 +231,8 @@ class UnaryOpNode{
     constructor(op_tok, node) {
         this.op_tok = op_tok
         this.node = node
+        this.pos_start = this.op_tok.pos_start
+        this.pos_end = node.pos_end
     }
     toString() {
         return `${this.op_tok}, ${this.node} `
@@ -334,6 +340,101 @@ class Parser{
     }
      
 }
+//Value
+class Number{
+    constructor(value) {
+        this.value = value
+        this.set_pos()
+    }
+    set_pos(pos_start = null, pos_end = null) {
+        this.pos_start = pos_start
+        this.pos_end = pos_end
+        return this
+    }
+    added_to(other) {
+        if (other instanceof Number) {
+            return new Number(this.value+other.value).set_pos(this.pos_start, other.pos_end)
+        }
+        return null
+    }
+    subbed_by(other) {
+        if (other instanceof Number) {
+            return new Number(this.value-other.value).set_pos(this.pos_start, other.pos_end)
+        }
+        return null
+    }
+    multed_by(other) {
+        if (other instanceof Number) {
+            return new Number(this.value*other.value).set_pos(this.pos_start, other.pos_end)
+        }
+        return null
+    }
+    divided_by(other) {
+        if (other instanceof Number) {
+            return new Number(this.value/other.value).set_pos(this.pos_start, other.pos_end)
+        }
+        return null
+    }
+    toString() {
+        return this.value.toString()
+    }
+
+}
+
+//INTERPRETER
+class Interpreter{
+    visit(node) {
+        let method_name = `visit_${node.constructor.name}`
+        let method = this[method_name] || this.no_visit_method;
+        return method.call(this,node)
+
+    }
+    no_visit_method(node) {
+        throw new Error(`No visit_${node.constructor.name} method defined`);
+    }
+
+    visit_NumberNode(node) {
+        return new Number(node.tok.value).set_pos(node.pos_start, node.pos_end)
+        //console.log("Found number node!")
+    }
+    visit_BinOpNode(node) {
+        
+        let left = this.visit(node.left_node)
+        let right = this.visit(node.right_node)
+
+        if (!left || !right) {
+            throw new Error(`Invalid operands for operation: ${node.op_tok.value}`);
+        }
+
+        let result= null
+        if (node.op_tok.type == PLUS) {
+            result = left.added_to(right)
+        }
+        else if (node.op_tok.type == MINUS) {
+            result = left.subbed_by(right)
+        }
+        else if (node.op_tok.type == MUL) {
+            result = left.multed_by(right)
+        }
+        else if (node.op_tok.type == DIV) {
+            result = left.divided_by(right)
+        }
+
+        if (!result) {
+            throw new Error(`Operation failed: ${node.op_tok.value}`);
+        }
+
+        return result.set_pos(node.pos_start, node.pos_end)
+    }
+    visit_UnaryOpNode(node) {
+        let number = this.visit(node.node)
+        if (node.op_tok.type == MINUS) {
+            number = number.multed_by(new Number(-1))
+        }
+        return number.set_pos(node.pos_start, node.pos_end)
+    }
+
+}
 
 //RUN
 function run(fn,text) {
@@ -346,8 +447,15 @@ function run(fn,text) {
     //Generate abstract syntax tree
     let parser = new Parser(result.tokens)
     let ast = parser.parse()
+    if (ast.error) {
+        return [null,ast.error]
+    }
 
-    return [ast.node,ast.error]
+    let interpreter = new Interpreter()
+    let resultint = interpreter.visit(ast.node)
+
+
+    return [resultint,null]
 }
 
 module.exports = { run };
