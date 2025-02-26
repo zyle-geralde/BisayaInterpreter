@@ -1,3 +1,4 @@
+const { error } = require("console");
 
 //HELPER FUNCTION
 function stringWithArrows(text, posStart, posEnd) {
@@ -64,6 +65,30 @@ class IllegalCharError extends Error{
 class IllegalSyntaxError extends Error{
     constructor(pos_start, pos_end, details = '') {
         super(pos_start || new Position(0,0,0), pos_end || new Position(0,0,0),"Illegal Syntax", details)
+    }
+}
+class RTError extends Error{
+    constructor(pos_start, pos_end, details = '',context) {
+        super(pos_start || new Position(0, 0, 0), pos_end || new Position(0, 0, 0), "Runtime Error", details)
+        this.context = context
+    }
+    as_string() {
+        let result = this.generate_traceback()
+        result += `${this.error_name}: ${this.details}\n`
+        result += "\n\n" + stringWithArrows(this.pos_start.ftxt, this.pos_start, this.pos_end)
+        return result
+    }
+    generate_traceback() {
+        let result = ''
+        let pos = this.pos_start
+        let ctx = this.context
+
+        while (ctx) {
+            result = `File ${pos.fn}, line ${(pos.ln + 1).toString()}, in ${ctx.display_name}\n` + result
+            pos = ctx.parent_entry_pos
+            ctx = ctx.parent
+        }
+        return `Traceback (most recent call last): \n`+result
     }
 }
 //Position
@@ -340,38 +365,68 @@ class Parser{
     }
      
 }
+
+class RTResult{
+    constructor() {
+        this.value = null
+        this.error = null
+    }
+    register(res) {
+        if (res.error) {
+            this.error = res.error
+        }
+        return res.value
+    }
+    success(value) {
+        this.value = value
+        return this
+    }
+    failure(error) {
+        this.error = error
+        return this
+    }
+}
 //Value
 class Number{
     constructor(value) {
         this.value = value
         this.set_pos()
+        this.set_context()
+
     }
     set_pos(pos_start = null, pos_end = null) {
         this.pos_start = pos_start
         this.pos_end = pos_end
         return this
     }
+    set_context(context = null) {
+        this.context = context
+        return this
+    }
     added_to(other) {
         if (other instanceof Number) {
-            return new Number(this.value+other.value).set_pos(this.pos_start, other.pos_end)
+            return [new Number(this.value+other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end),null]
         }
         return null
     }
     subbed_by(other) {
         if (other instanceof Number) {
-            return new Number(this.value-other.value).set_pos(this.pos_start, other.pos_end)
+            return [new Number(this.value-other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end),null]
         }
         return null
     }
     multed_by(other) {
         if (other instanceof Number) {
-            return new Number(this.value*other.value).set_pos(this.pos_start, other.pos_end)
+            return [new Number(this.value*other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end),null]
         }
         return null
     }
     divided_by(other) {
         if (other instanceof Number) {
-            return new Number(this.value/other.value).set_pos(this.pos_start, other.pos_end)
+            if (other.value == 0) {
+                return [null,new RTError(other.pos_start,other.pos_end,"Division by zero",this.context)]
+            }
+            return [new Number(this.value/other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end),null]
         }
         return null
     }
@@ -380,58 +435,82 @@ class Number{
     }
 
 }
+//Context
+class Context{
+    constructor(display_name,parent = null,parent_entry_pos = null) {
+        this.display_name = display_name
+        this.parent_entry_pos = parent_entry_pos
+        this.parent = parent
+    }
+}
 
 //INTERPRETER
 class Interpreter{
-    visit(node) {
+    visit(node,context) {
         let method_name = `visit_${node.constructor.name}`
         let method = this[method_name] || this.no_visit_method;
         return method.call(this,node)
 
     }
-    no_visit_method(node) {
+    no_visit_method(node,context) {
         throw new Error(`No visit_${node.constructor.name} method defined`);
     }
 
-    visit_NumberNode(node) {
-        return new Number(node.tok.value).set_pos(node.pos_start, node.pos_end)
+    visit_NumberNode(node,context) {
+        return new RTResult().success(new Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end))
         //console.log("Found number node!")
     }
-    visit_BinOpNode(node) {
-        
-        let left = this.visit(node.left_node)
-        let right = this.visit(node.right_node)
+    visit_BinOpNode(node,context) {
+        let res= new RTResult()
+        let left = res.register(this.visit(node.left_node,context))
+        if(res.error) return res
+        let right = res.register(this.visit(node.right_node,context))
+        if(res.error) return res
 
         if (!left || !right) {
             throw new Error(`Invalid operands for operation: ${node.op_tok.value}`);
         }
 
-        let result= null
+        let result = null
+        let error =null
         if (node.op_tok.type == PLUS) {
-            result = left.added_to(right)
+            [result,error] = left.added_to(right)
         }
         else if (node.op_tok.type == MINUS) {
-            result = left.subbed_by(right)
+            [result,error] = left.subbed_by(right)
         }
         else if (node.op_tok.type == MUL) {
-            result = left.multed_by(right)
+            [result,error] = left.multed_by(right)
         }
         else if (node.op_tok.type == DIV) {
-            result = left.divided_by(right)
+            [result,error] = left.divided_by(right)
         }
 
-        if (!result) {
-            throw new Error(`Operation failed: ${node.op_tok.value}`);
+        if (error) {
+            return res.failure(error)
         }
-
-        return result.set_pos(node.pos_start, node.pos_end)
+        else {
+            return res.success(result.set_pos(node.pos_start, node.pos_end))
+        }
     }
-    visit_UnaryOpNode(node) {
-        let number = this.visit(node.node)
-        if (node.op_tok.type == MINUS) {
-            number = number.multed_by(new Number(-1))
+    visit_UnaryOpNode(node,context) {
+        let res = new RTResult()
+        let number = res.register(this.visit(node.node,context))
+        if (res.error) {
+            return res
         }
-        return number.set_pos(node.pos_start, node.pos_end)
+
+        let error = null
+        if (node.op_tok.type == MINUS) {
+            [number,error]= number.multed_by(new Number(-1))
+        }
+        if (error) {
+            return res.failure(error)
+        }
+        else {
+            return res.success(number.set_pos(node.pos_start, node.pos_end))
+        }
+        
     }
 
 }
@@ -452,10 +531,11 @@ function run(fn,text) {
     }
 
     let interpreter = new Interpreter()
-    let resultint = interpreter.visit(ast.node)
+    let context = new Context("<program>")
+    let resultint = interpreter.visit(ast.node,context)
 
 
-    return [resultint,null]
+    return [resultint.value,resultint.error]
 }
 
 module.exports = { run };
