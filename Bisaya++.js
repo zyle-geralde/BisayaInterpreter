@@ -176,7 +176,7 @@ class BinOpNode {
 }
 
 //PASER
-class Paser{
+class Parser{
     constructor(tokens) {
         this.tokens = tokens
         this.tok_idx = -1
@@ -189,7 +189,7 @@ class Paser{
         }
         return this.current_tok
     }
-    parser() {
+    parse() {
         let res = this.expr()
         return res
     }
@@ -203,10 +203,10 @@ class Paser{
 
     }
     term() {
-        return this.bin_op(this.factor, [MUL,DIV])
+        return this.bin_op(()=>this.factor(), [MUL,DIV])
     }
     expr() {
-        return this.bin_op(this.term, [PLUS,MINUS])
+        return this.bin_op(()=>this.term(), [PLUS,MINUS])
     }
     bin_op(func, ops) {
         let left = func()
@@ -226,8 +226,15 @@ class Paser{
 function run(fn,text) {
     let lexer = new Lexer(fn,text); 
     let result = lexer.make_tokens();
+    if (result.error) {
+        return [null,error]
+    }
 
-    return [result.tokens,result.error]
+    //Generate abstract syntax tree
+    let parser = new Parser(result.tokens)
+    let ast = parser.parse()
+
+    return [ast,null]
 }
 
 module.exports = { run };
