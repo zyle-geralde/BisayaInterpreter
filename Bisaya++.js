@@ -57,7 +57,7 @@ class Position {
     }
 }
 
-//Lexer creation
+//TOKEN creation
 class Token{
     constructor(type,value = null) {
         this.type =type;
@@ -68,6 +68,7 @@ class Token{
     }
 }
 
+//LEXER CREATION
 class Lexer{
     constructor(fn, text) {
         this.fn = fn
@@ -148,6 +149,54 @@ class Lexer{
         else {
             return new Token(TIPIK,parseFloat(num_str))
         }
+    }
+}
+
+//NODE CREATION
+class NumberNode {
+    constructor(tok) {
+        this.tok = tok;
+    }
+
+    toString() {
+        return `${this.tok}`;
+    }
+}
+
+class BinOpNode {
+    constructor(left_node, op_tok, right_node) {
+        this.left_node = left_node;
+        this.op_tok = op_tok;
+        this.right_node = right_node;
+    }
+
+    toString() {
+        return `(${this.left_node}, ${this.op_tok}, ${this.right_node})`;
+    }
+}
+
+//PASER
+class Paser{
+    constructor(tokens) {
+        this.tokens = tokens
+        this.tok_idx = 1
+        this.advance()
+    }
+    advance() {
+        this.tok_idx += 1
+        if (this.tok_idx < this.tokens.length) {
+            this.current_tok = this.tokens[this.tok_idx]
+        }
+        return this.current_tok
+    }
+    factor() {
+        null
+    }
+    term() {
+        null
+    }
+    expr() {
+        null
     }
 }
 
