@@ -179,7 +179,7 @@ class BinOpNode {
 class Paser{
     constructor(tokens) {
         this.tokens = tokens
-        this.tok_idx = 1
+        this.tok_idx = -1
         this.advance()
     }
     advance() {
@@ -189,15 +189,37 @@ class Paser{
         }
         return this.current_tok
     }
+    parser() {
+        let res = this.expr()
+        return res
+    }
     factor() {
-        null
+        let tok = this.current_tok
+
+        if ([TIPIK,NUMERO].includes(tok.type)) {
+            this.advance()
+            return new NumberNode(tok)
+        }
+
     }
     term() {
-        null
+        return this.bin_op(this.factor, [MUL,DIV])
     }
     expr() {
-        null
+        return this.bin_op(this.term, [PLUS,MINUS])
     }
+    bin_op(func, ops) {
+        let left = func()
+
+        while (ops.includes(this.current_tok.type)) {
+            let op_tok = this.current_tok
+            this.advance()
+            let right = func()
+            left = new BinOpNode(left,op_tok,right)
+        }
+        return left
+    }
+     
 }
 
 //RUN
