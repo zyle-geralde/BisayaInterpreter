@@ -1,6 +1,33 @@
 
+//HELPER FUNCTION
+function stringWithArrows(text, posStart, posEnd) {
+    let result = '';
+
+    let idxStart = Math.max(text.lastIndexOf('\n', posStart.idx), 0);
+    let idxEnd = text.indexOf('\n', idxStart + 1);
+    if (idxEnd < 0) idxEnd = text.length;
+
+    let lineCount = posEnd.ln - posStart.ln + 1;
+    for (let i = 0; i < lineCount; i++) {
+ 
+        let line = text.slice(idxStart, idxEnd);
+        let colStart = i === 0 ? posStart.col : 0;
+        let colEnd = i === lineCount - 1 ? posEnd.col : line.length - 1;
+
+        result += line + '\n';
+        result += ' '.repeat(colStart) + '^'.repeat(colEnd - colStart) + '\n';
+
+        idxStart = idxEnd;
+        idxEnd = text.indexOf('\n', idxStart + 1);
+        if (idxEnd < 0) idxEnd = text.length;
+    }
+
+    return result.replace(/\t/g, '');
+}
+
 //DIGIT
 const DIGITS = "0123456789"
+
 //TOKENS
 const NUMERO = "INT"
 const TIPIK = "FLOAT"
@@ -10,6 +37,7 @@ const MUL = "MUL"
 const DIV = "DIV"
 const LPAREN = "LPAREN"
 const RPAREN = "RPAREN"
+TT_EOF = "EOF"
 
 //Error
 class Error{
@@ -22,12 +50,18 @@ class Error{
     as_string() {
         let result = `${this.error_name}: ${this.details}`
         result += `File ${this.pos_start.fn}, line ${this.pos_start.ln + 1}`
+        result += "\n\n"+stringWithArrows(this.pos_start.ftxt, this.pos_start, this.pos_end)
         return result
     }
 }
 class IllegalCharError extends Error{
     constructor(pos_start, pos_end,details) {
         super(pos_start, pos_end,"Illegal Character", details)
+    }
+}
+class IllegalSyntaxError extends Error{
+    constructor(pos_start, pos_end,details = '') {
+        super(pos_start, pos_end,"Illegal Syntax", details)
     }
 }
 //Position
@@ -40,7 +74,7 @@ class Position {
         this.ftxt = ftxt;
     }
 
-    advance(current_char) {
+    advance(current_char = null) {
         this.idx += 1;
         this.col += 1;
 
@@ -57,11 +91,21 @@ class Position {
     }
 }
 
-//TOKEN creation
+//TOKEN creation 
 class Token{
-    constructor(type,value = null) {
+    constructor(type,value = null,pos_start = null,pos_end = null) {
         this.type =type;
-        this.value =value;
+        this.value = value;
+        
+        if (pos_start) {
+            this.pos_start = pos_start.copy()
+            this.pos_end = pos_end.copy()
+            this.pos_end.advance()
+        }
+
+        if (pos_end) {
+            this.pos_end = pos_end
+        }
     }
     toString() {
         return this.value !== null ? `${this.type}:${this.value}` : `${this.type}`;
@@ -92,27 +136,27 @@ class Lexer{
                 tokens.push(this.make_number())
             }
             else if (this.current_char === "+") {
-                tokens.push(new Token(PLUS))
+                tokens.push(new Token(PLUS, pos_start = this.pos))
                 this.advance()
             }
             else if (this.current_char === "-") {
-                tokens.push(new Token(MINUS))
+                tokens.push(new Token(MINUS, pos_start = this.pos))
                 this.advance()
             }
             else if (this.current_char === "*") {
-                tokens.push(new Token(MUL))
+                tokens.push(new Token(MUL, pos_start = this.pos))
                 this.advance()
             }
             else if (this.current_char === "/") {
-                tokens.push(new Token(DIV))
+                tokens.push(new Token(DIV, pos_start = this.pos))
                 this.advance()
             }
             else if (this.current_char === "(") {
-                tokens.push(new Token(LPAREN))
+                tokens.push(new Token(LPAREN, pos_start = this.pos))
                 this.advance()
             }
             else if (this.current_char === ")") {
-                tokens.push(new Token(RPAREN))
+                tokens.push(new Token(RPAREN, pos_start = this.pos))
                 this.advance()
             }
             else {
@@ -124,12 +168,14 @@ class Lexer{
 
         }
 
+        tokens.push(new Token(TT_EOF, pos_start = this.pos))
         return { tokens, error: null}
 
     }
     make_number() {
         let num_str = ""
         let dot_count = 0
+        let pos_start = this.pos.copy()
 
         while (this.current_char !== null && (DIGITS+".").includes(this.current_char)) {
             if (this.current_char === ".") {
@@ -144,10 +190,10 @@ class Lexer{
         }
 
         if (dot_count === 0) {
-            return new Token(NUMERO,parseInt(num_str,10))
+            return new Token(NUMERO,parseInt(num_str,10),pos_start,this.pos)
         }
         else {
-            return new Token(TIPIK,parseFloat(num_str))
+            return new Token(TIPIK,parseFloat(num_str),pos_start,this.pos)
         }
     }
 }
@@ -175,6 +221,30 @@ class BinOpNode {
     }
 }
 
+//PARSE RESULT
+class ParseResult{
+    constructor() {
+        this.error = null
+        this.node = null
+    }
+    register(res) {
+        if (res instanceof ParseResult) {
+            if (res.error) this.error = res.error
+            return res.node
+        }
+        return res
+    }
+    success(node) {
+        this.node = node
+        return this
+    }
+    failure(error) {
+        this.error = error
+        return this
+    }
+
+}
+
 //PASER
 class Parser{
     constructor(tokens) {
@@ -191,15 +261,20 @@ class Parser{
     }
     parse() {
         let res = this.expr()
+        if (!res.error && this.current_tok.type != TT_EOF) {
+            return res.failure(new IllegalSyntaxError(this.current_tok.pos_start, this.current_tok.pos_end, "Expected + - * or /"))
+        }
         return res
     }
     factor() {
+        let res = new ParseResult()
         let tok = this.current_tok
 
         if ([TIPIK,NUMERO].includes(tok.type)) {
-            this.advance()
-            return new NumberNode(tok)
+            res.register(this.advance())
+            return res.success(new NumberNode(tok))
         }
+        return res.failure(new IllegalSyntaxError(tok.pos_start, tok.pos_end, "Expected int or float"))
 
     }
     term() {
@@ -209,15 +284,18 @@ class Parser{
         return this.bin_op(()=>this.term(), [PLUS,MINUS])
     }
     bin_op(func, ops) {
-        let left = func()
+        let res = new ParseResult()
+        let left = res.register(func())
+        if(res.error) return res
 
         while (ops.includes(this.current_tok.type)) {
             let op_tok = this.current_tok
-            this.advance()
-            let right = func()
+            res.register(this.advance())
+            let right = res.register(func())
+            if (res.error) return res
             left = new BinOpNode(left,op_tok,right)
         }
-        return left
+        return res.success(left)
     }
      
 }
