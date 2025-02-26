@@ -223,6 +223,16 @@ class BinOpNode {
     }
 }
 
+class UnaryOpNode{
+    constructor(op_tok, node) {
+        this.op_tok = op_tok
+        this.node = node
+    }
+    toString() {
+        return `${this.op_tok}, ${this.node} `
+    }
+}
+
 //PARSE RESULT
 class ParseResult{
     constructor() {
@@ -272,10 +282,33 @@ class Parser{
         let res = new ParseResult()
         let tok = this.current_tok
 
-        if ([TIPIK,NUMERO].includes(tok.type)) {
+        if ([PLUS, MINUS].includes(tok.type)) {
+            res.register(this.advance())
+            let factor = res.register(this.factor())
+            if (res.error) return res
+            return res.success(new UnaryOpNode(tok,factor))
+
+        }
+        else if ([TIPIK,NUMERO].includes(tok.type)) {
             res.register(this.advance())
             return res.success(new NumberNode(tok))
         }
+        else if (tok.type == LPAREN) {
+            res.register(this.advance())
+            let expr = res.register(this.expr())
+            if (res.error) return res
+            if (this.current_tok.type == RPAREN) {
+                res.register(this.advance())
+                return res.success(expr)
+            }
+            else {
+                return res.failure(new IllegalSyntaxError(
+					this.current_tok.pos_start, this.current_tok.pos_end,
+					"Expected ')'"
+				))
+            }
+        }
+
         return res.failure(new IllegalSyntaxError(tok.pos_start, tok.pos_end, "Expected int or float"))
 
     }
@@ -307,7 +340,7 @@ function run(fn,text) {
     let lexer = new Lexer(fn,text); 
     let result = lexer.make_tokens();
     if (result.error) {
-        return [null,error]
+        return [null,result.error]
     }
 
     //Generate abstract syntax tree
