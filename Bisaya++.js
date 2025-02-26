@@ -42,14 +42,16 @@ TT_EOF = "EOF"
 //Error
 class Error{
     constructor(pos_start, pos_end, error_name, details) {
-        this.pos_start = pos_start
-        this.pos_end = pos_end
+        this.pos_start = pos_start || {}
+        this.pos_end = pos_end || {}
         this.error_name = error_name;
         this.details = details
     }
     as_string() {
         let result = `${this.error_name}: ${this.details}`
-        result += `File ${this.pos_start.fn}, line ${this.pos_start.ln + 1}`
+        if (this.pos_start.fn) {
+            result += ` File ${this.pos_start.fn}, line ${this.pos_start.ln + 1}`;
+        }
         result += "\n\n"+stringWithArrows(this.pos_start.ftxt, this.pos_start, this.pos_end)
         return result
     }
@@ -60,13 +62,13 @@ class IllegalCharError extends Error{
     }
 }
 class IllegalSyntaxError extends Error{
-    constructor(pos_start, pos_end,details = '') {
-        super(pos_start, pos_end,"Illegal Syntax", details)
+    constructor(pos_start, pos_end, details = '') {
+        super(pos_start || new Position(0,0,0), pos_end || new Position(0,0,0),"Illegal Syntax", details)
     }
 }
 //Position
 class Position {
-    constructor(idx, ln, col, fn, ftxt) {
+    constructor(idx, ln, col, fn = "<unknown>", ftxt = "") {
         this.idx = idx;
         this.ln = ln;
         this.col = col;
@@ -99,7 +101,7 @@ class Token{
         
         if (pos_start) {
             this.pos_start = pos_start.copy()
-            this.pos_end = pos_end.copy()
+            this.pos_end = pos_start.copy()
             this.pos_end.advance()
         }
 
@@ -136,27 +138,27 @@ class Lexer{
                 tokens.push(this.make_number())
             }
             else if (this.current_char === "+") {
-                tokens.push(new Token(PLUS, pos_start = this.pos))
+                tokens.push(new Token(PLUS,this.pos.copy()))
                 this.advance()
             }
             else if (this.current_char === "-") {
-                tokens.push(new Token(MINUS, pos_start = this.pos))
+                tokens.push(new Token(MINUS, this.pos.copy()))
                 this.advance()
             }
             else if (this.current_char === "*") {
-                tokens.push(new Token(MUL, pos_start = this.pos))
+                tokens.push(new Token(MUL, this.pos.copy()))
                 this.advance()
             }
             else if (this.current_char === "/") {
-                tokens.push(new Token(DIV, pos_start = this.pos))
+                tokens.push(new Token(DIV, this.pos.copy()))
                 this.advance()
             }
             else if (this.current_char === "(") {
-                tokens.push(new Token(LPAREN, pos_start = this.pos))
+                tokens.push(new Token(LPAREN, this.pos.copy()))
                 this.advance()
             }
             else if (this.current_char === ")") {
-                tokens.push(new Token(RPAREN, pos_start = this.pos))
+                tokens.push(new Token(RPAREN, this.pos.copy()))
                 this.advance()
             }
             else {
@@ -168,7 +170,7 @@ class Lexer{
 
         }
 
-        tokens.push(new Token(TT_EOF, pos_start = this.pos))
+        tokens.push(new Token(TT_EOF, this.pos.copy()))
         return { tokens, error: null}
 
     }
@@ -312,7 +314,7 @@ function run(fn,text) {
     let parser = new Parser(result.tokens)
     let ast = parser.parse()
 
-    return [ast,null]
+    return [ast.node,ast.error]
 }
 
 module.exports = { run };
