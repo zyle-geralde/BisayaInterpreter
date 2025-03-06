@@ -4,8 +4,10 @@ const fs = require('fs');
 fs.readFile('checking.txt', 'utf8', (err, data) => {
     if (err) { console.error('Error reading file:', err); return; }
     let interpreter = new Lexer(data)
-    interpreter.make_tokens()
+    let get_tokens = interpreter.make_tokens()
+    let parser = new Parser(get_tokens)
     console.log(interpreter)
+    parser.parse()
     
 });
 
@@ -26,9 +28,11 @@ TT_DTYPE = "DTYPE"
 TT_IPAKITA = "IPAKITA"
 TT_CONCAT = "CONCAT"
 TT_NEXTLINE = "NEXTLINE"
-TT_IPAKITA_VALUE = "ORDINARY_VALUE"
+TT_VAR_DEC = "VAR_DEC"
+TT_PRINT = "PRINT"
 
-let keywords = [TT_SUGOD, TT_MUGNA, TT_KATAPUSAN,TT_IPAKITA]
+
+let keywords = [TT_SUGOD,TT_KATAPUSAN]
 let dtype = [TT_NUMERO,TT_LETRA,TT_TINUOD,TT_TIPIK]
 
 let alphbet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -46,7 +50,7 @@ class Token{
 
 class Lexer{
     constructor(text) {
-        this.text = text
+        this.text = text.trim()
         this.indx = 0;
     }
     make_tokens() {
@@ -99,6 +103,14 @@ class Lexer{
                 }
                 else if (dtype.includes(value)) {
                     let newtoken = new Token(value, TT_DTYPE)
+                    tokens.push(newtoken)
+                }
+                else if (value == TT_MUGNA) {
+                    let newtoken = new Token(value, TT_VAR_DEC)
+                    tokens.push(newtoken)
+                }
+                else if (value == TT_IPAKITA) {
+                    let newtoken = new Token(value, TT_PRINT)
                     tokens.push(newtoken)
                 }
                 else if (!isNaN(value) || value.trim() === "") {
@@ -183,6 +195,154 @@ class Lexer{
             }
         }
         console.log(tokens)
+        return tokens
+    }
+}
+
+class ASTNODE{
+    constructor(type = null, attributes = {}) {
+        this.type = type
+        this.attributes = attributes
+    }
+}
+class Parser{
+    constructor(token) {
+        this.token = token
+        this.position = 0
+    }
+    parse() {
+        let ast = { type: "Program", body: [] }
+        
+        if (this.token[0].value == "SUGOD") {
+            this.position += 1
+            if (this.position >= this.token.length) {
+                throw new Error("ERROR: missing Katapusan");
+            }
+            if (this.token[this.position].type != TT_NEWLINE) {
+                throw new Error("ERROR: new line needed");
+            }
+            this.position+=1
+            while (this.position < this.token.length) {
+                if (this.token[this.position].type == TT_NEWLINE) {
+                    console.log("ignore")
+                    this.position+=1
+                }
+                else if (this.token[this.position].type == TT_VAR_DEC) {
+                    let vardecJson = this.variabelDeclaration()
+                    ast.body.push(vardecJson)
+                }
+                else if (this.token[this.position].value == TT_KATAPUSAN) {
+                    if (this.position+1 < this.token.length) {
+                        throw new Error("Invalid Syntax");
+                    }
+                    else {
+                        break
+                    }
+                }
+                else {
+                    throw new Error("Invalid Syntax");
+                    this.position+=1
+                }
+            }
+        }
+        else {
+            throw new Error("ERROR: SUGOD missing");
+        }
+    }
+    variabelDeclaration() {
+        let vardec = {"type":null,"dataType":null,"variables":[]}
+        vardec["type"] = "VariableDeclaration"
+        
+        this.position += 1
+        if (this.position < this.token.length && this.token[this.position].type == TT_DTYPE) {
+            vardec["dataType"] = this.token[this.position].value
+            this.position+=1
+        }
+        else {
+            throw new Error("ERROR: Not a valid datatype");
+
+        }
+
+        while (this.position < this.token.length) {
+            console.log(vardec)
+            if (this.token[this.position].type == TT_NEWLINE) {
+                this.position+=1
+                break
+            }
+            if (this.token[this.position].type == TT_COMMA) {
+                console.log("run multicomma if")
+                this.position += 1
+                if (this.token[this.position].type == TT_COMMA) {
+                    throw new Error("ERROR: Multiple comma");
+                }
+                continue
+            }
+
+            if (this.token[this.position].type == TT_IDENTIFIER) {
+                let identifier_hold = { "name": null, "value": null }
+                identifier_hold["name"] = this.token[this.position].value
+                this.position += 1
+
+                if (this.position < this.token.length) {
+                    if (this.token[this.position].type == TT_ASSIGN) {
+                        this.position += 1
+                        if (this.token[this.position].type == vardec["dataType"]) {
+                            identifier_hold["value"] = this.token[this.position].value
+                            this.position += 1
+                            
+                            if (this.position < this.token.length) {
+                                if (this.token[this.position].type == TT_COMMA) {
+                                    if (this.position == this.token.length - 1) {
+                                        throw new Error("ERROR: Unprecedented comma");
+                                    }
+                                    else if (this.token[this.position + 1].type == TT_NEWLINE) {
+                                        throw new Error("ERROR: Unprecedented comma");
+                                    }
+                                }
+                                else if (this.token[this.position].type != TT_COMMA) {
+                                    if (this.token[this.position].type != TT_NEWLINE) {
+                                        throw new Error("ERROR: comma is needed");
+                                    }
+                                }
+                            }
+    
+    
+                            vardec.variables.push(identifier_hold)
+                        }
+                        else {
+                            throw new Error("ERROR: Invalid value for identifier");
+                        }
+                    }
+                    else {
+                        if (this.position < this.token.length) {
+                            if (this.token[this.position].type == TT_COMMA) {
+                                if (this.position == this.token.length - 1) {
+                                    throw new Error("ERROR: Unprecedented comma");
+                                }
+                                else if (this.token[this.position + 1].type == TT_NEWLINE) {
+                                    throw new Error("ERROR: Unprecedented comma");
+                                }
+                            }
+                            else if (this.token[this.position].type != TT_COMMA) {
+                                if (this.token[this.position].type != TT_NEWLINE) {
+                                    throw new Error("ERROR: comma is needed");
+                                }
+                            }
+                        }
+                        vardec.variables.push(identifier_hold)
+                    }
+                }
+            }
+            else {
+                throw new Error("ERROR: Invalid Identifier");
+            }
+        }
+
+        if (this.position >= this.token.length) {
+            throw new Error("ERROR: Katapusan missing");
+        }
+
+        return vardec
     }
 }
 
