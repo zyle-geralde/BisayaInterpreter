@@ -231,10 +231,10 @@ class Parser{
                     let vardecJson = this.variabelDeclaration()
                     ast.body.push(vardecJson)
                 }
-                /*else if (this.token[this.position].type == TT_IDENTIFIER) {
+                else if (this.token[this.position].type == TT_IDENTIFIER) {
                     let vardecJson = this.variableAssignement()
                     ast.body.push(vardecJson)
-                }*/
+                }
                 else if (this.token[this.position].value == TT_KATAPUSAN) {
                     if (this.position+1 < this.token.length) {
                         throw new Error("Invalid Syntax");
@@ -354,24 +354,96 @@ class Parser{
 
     variableAssignement() {
         let assignmentJSON = { "type": "VariableAssignment", "assignments": [] }
-        
+        let holdVariable = []
+        let holdvalue = null
+        let indicHold = null
+        holdVariable.push(this.token[this.position].value)
+
         this.position+=1
         if (this.position < this.token.length) {
             if (this.token[this.position].type == TT_ASSIGN) {
                 this.position += 1
+
                 if (this.position < this.token.length) {
-                    if (this.token[this.position]) {
+                    let active = "equals"
+                    while (true) {
+                        if (this.position >= this.token.length) {
+                            throw new Error("ERROR: Missing KATAPUSAN");
+                        }
+                        if (this.token[this.position].type == TT_NEWLINE) {
+                            for (let n of holdVariable) {
+                                let assvarJSON = { "variable": n, "value": holdvalue,"indicator": indicHold }
+                                assignmentJSON["assignments"].push(assvarJSON)
+                            }
+                            this.position+=1
+                            break
+                        }
                         
+                        if (dtype.includes(this.token[this.position].type)) {
+                            if (active != "equals") {
+                                throw new Error("Invalid value assignment");
+                            }
+                            holdvalue = this.token[this.position].value
+                            indicHold = "value"
+                            this.position += 1
+                            if (this.position >= this.token.length) {
+                                throw new Error("ERROR: Missing KATAPUSAN");
+                            }
+                            if (this.token[this.position].type != TT_NEWLINE) {
+                                throw new Error("Invalid identifier assignment");
+                            }
+                            
+                        }
+                        else if (this.token[this.position].type == TT_IDENTIFIER) {
+                            if (active != "equals") {
+                                throw new Error("Invalid identifier position");
+                            }
+                            holdvalue = this.token[this.position].value
+                            indicHold = "indentifier"
+                            holdVariable.push(this.token[this.position].value)
+                            active= "ident"
+                            this.position +=1
+                        }
+                        else if (this.token[this.position].type == TT_ASSIGN) {
+                            if (active != "ident") {
+                                throw new Error("Invalid assignment position");
+                            }
+                            active= "equals"
+                            this.position += 1
+                            if (this.position >= this.token.length) {
+                                throw new Error("ERROR: Missing KATAPUSAN");
+                            }
+                            if (this.token[this.position].type == TT_NEWLINE) {
+                                throw new Error("Invalid assignment structure");
+                            }
+                        }
+                        else {
+                            throw new Error("Invalid Value for identifier");
+                        }
                     }
+                    active = "equals"
                 }
                 else {
                     throw new Error("Invalid Value for identifier");
                 }
             }
+            else if (this.token[this.position].type == TT_NEWLINE) {
+                for (let n of holdVariable) {
+                    let assvarJSON = { "variable": n, "value": holdvalue,"indicator": "value" }
+                    assignmentJSON["assignments"].push(assvarJSON)
+                }
+                this.position+=1
+            }
             else {
                 throw new Error("ERROR: Missing equal sign");
             }
         }
+        else {
+            throw new Error("ERROR: Missing KATAPUSAN");
+        }
+
+        console.log(assignmentJSON)
+        return assignmentJSON
     }
 }
 

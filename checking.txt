@@ -1,7 +1,7 @@
 SUGOD
-    MUGNA NUMERO x=4,y= 671,r,t,z1 =34
-    MUGNA LETRA bb = '4',hello = ' ', worold = '3' 
-    MUGNA TIPIK hh
+    nn = 4
+
+    B = jj = 5
 KATAPUSAN
 
 
