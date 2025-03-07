@@ -231,6 +231,10 @@ class Parser{
                     let vardecJson = this.variabelDeclaration()
                     ast.body.push(vardecJson)
                 }
+                /*else if (this.token[this.position].type == TT_IDENTIFIER) {
+                    let vardecJson = this.variableAssignement()
+                    ast.body.push(vardecJson)
+                }*/
                 else if (this.token[this.position].value == TT_KATAPUSAN) {
                     if (this.position+1 < this.token.length) {
                         throw new Error("Invalid Syntax");
@@ -261,6 +265,9 @@ class Parser{
         else {
             throw new Error("ERROR: Not a valid datatype");
 
+        }
+        if (this.token[this.position].type == TT_NEWLINE) {
+            throw new Error("ERROR: No identifier");
         }
 
         while (this.position < this.token.length) {
@@ -343,6 +350,28 @@ class Parser{
         }
 
         return vardec
+    }
+
+    variableAssignement() {
+        let assignmentJSON = { "type": "VariableAssignment", "assignments": [] }
+        
+        this.position+=1
+        if (this.position < this.token.length) {
+            if (this.token[this.position].type == TT_ASSIGN) {
+                this.position += 1
+                if (this.position < this.token.length) {
+                    if (this.token[this.position]) {
+                        
+                    }
+                }
+                else {
+                    throw new Error("Invalid Value for identifier");
+                }
+            }
+            else {
+                throw new Error("ERROR: Missing equal sign");
+            }
+        }
     }
 }
 
