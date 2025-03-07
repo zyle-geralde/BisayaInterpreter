@@ -1,7 +1,5 @@
 SUGOD
-    nn = 4
 
-    B = jj = 5
 KATAPUSAN
 
 
