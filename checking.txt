@@ -5,12 +5,11 @@ MUGNA NUMERO a, b=34, c
 MUGNA LETRA a_1='a'  
 
 MUGNA TINUOD xx="OO" 
+a = 45
 x = x= y = a
 
-
-
 MUGNA TINUOD tt="OO" 
-IPAKITA : "OO" & T & a_1
+IPAKITA :b & ' ' & "Last of Us" & xx & 'l' & 45.6 & $ & "hello"
 KATAPUSAN
 
  

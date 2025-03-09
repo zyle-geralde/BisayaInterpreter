@@ -542,6 +542,7 @@ class Interpreter{
     constructor(ast) {
         this.ast = ast
         this.memory = []
+        this.executeString = ""
     }
 
     execute() {
@@ -551,6 +552,16 @@ class Interpreter{
             }
             else if (nodes["type"] == "VariableAssignment") {
                 this.executeVariableAssignment(nodes)
+            }
+            else if (nodes["type"] == "PrintFunction") {
+                let stringexec = this.executePrintFunction(nodes)
+                const result = stringexec.replaceAll('"', '').replaceAll("'", '');
+                console.log(stringexec)
+
+                console.log(result)
+            }
+            else {
+                
             }
         }
     }
@@ -617,6 +628,36 @@ class Interpreter{
             }
         }
         console.log(this.memory)
+    }
+
+    executePrintFunction(nodes) {
+        for (let expr of nodes["expression"]) {
+            if (expr["type"] == "Value") {
+                this.executeString += expr["name"]
+            }
+            else if (expr["type"] == "Variable") {
+                let existingVarExpr = this.memory.find(variable => variable["name"] === expr["name"]);
+                if (existingVarExpr) {
+                    if (existingVarExpr["value"] != null) {
+                        this.executeString+=existingVarExpr["value"]
+                    }
+                }
+                else {
+                    throw new Error("ERROR: Variable not found");
+                }
+            }
+            else if (expr["type"] == "String") {
+                this.executeString+=expr["name"]
+            }
+            else if (expr["type"] == "NEXTLINE") {
+                this.executeString += "\n"
+            }
+            else {
+                
+            }
+        }
+
+        return this.executeString
     }
 }
 
