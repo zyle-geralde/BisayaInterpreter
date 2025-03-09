@@ -363,12 +363,25 @@ class Parser{
         let holdVariable = []
         let holdvalue = null
         let indicHold = null
+        let indicdtype = "none"
         holdVariable.push(this.token[this.position].value)
+        indicdtype = "none"
 
         this.position+=1
         if (this.position < this.token.length) {
             if (this.token[this.position].type == TT_ASSIGN) {
                 this.position += 1
+                /*if (this.position < this.token.length) {
+                    if (this.token[this.position].type == TT_NEWLINE) {
+                        throw new Error("ERROR: Missing KATAPUSAN")
+                    }
+                    else if (dtype.includes(this.token[this.position].type)) {
+                        
+                    }
+                }
+                else {
+                    throw new Error("ERROR: Missing KATAPUSAN")
+                }*/
 
                 if (this.position < this.token.length) {
                     let active = "equals"
@@ -376,9 +389,9 @@ class Parser{
                         if (this.position >= this.token.length) {
                             throw new Error("ERROR: Missing KATAPUSAN")
                         }
-                        if (this.token[this.position].type == TT_NEWLINE) {
+                        if (this.token[this.position].type == TT_NEWLINE && active!="equals") {
                             for (let n of holdVariable) {
-                                let assvarJSON = { "variable": n, "value": holdvalue,"indicator": indicHold }
+                                let assvarJSON = { "variable": n, "value": holdvalue,"indicator": indicHold, "dtype":indicdtype }
                                 assignmentJSON["assignments"].push(assvarJSON)
                             }
                             this.position+=1
@@ -391,6 +404,8 @@ class Parser{
                             }
                             holdvalue = this.token[this.position].value
                             indicHold = "value"
+                            active = "ident"
+                            indicdtype = this.token[this.position].type
                             this.position += 1
                             if (this.position >= this.token.length) {
                                 throw new Error("ERROR: Missing KATAPUSAN");
@@ -406,6 +421,7 @@ class Parser{
                             }
                             holdvalue = this.token[this.position].value
                             indicHold = "indentifier"
+                            indicdtype = "none"
                             holdVariable.push(this.token[this.position].value)
                             active= "ident"
                             this.position +=1
@@ -435,7 +451,7 @@ class Parser{
             }
             else if (this.token[this.position].type == TT_NEWLINE) {
                 for (let n of holdVariable) {
-                    let assvarJSON = { "variable": n, "value": holdvalue,"indicator": "value" }
+                    let assvarJSON = { "variable": n, "value": holdvalue,"indicator": "value", "dtype":indicdtype}
                     assignmentJSON["assignments"].push(assvarJSON)
                 }
                 this.position+=1
@@ -533,10 +549,14 @@ class Interpreter{
             if (nodes["type"] == 'VariableDeclaration') {
                 this.executeVariableDeclaration(nodes)
             }
+            else if (nodes["type"] == "VariableAssignment") {
+                this.executeVariableAssignment(nodes)
+            }
         }
     }
 
     executeVariableDeclaration(nodes) {
+        let datatypehold = nodes["dataType"]
         for (let varhold of nodes["variables"]) {
             if (this.memory.length != 0) {
                 let existingVar = this.memory.find(variable => variable["name"] === varhold["name"]);
@@ -544,16 +564,59 @@ class Interpreter{
                     throw new Error("ERROR: Variable already exist");
                 }
                 else {
+                    varhold["datatype"] = datatypehold
                     this.memory.push(varhold)
                 }
             }
             else {
+                varhold["datatype"] = datatypehold
                 this.memory.push(varhold)
-
             }
         }
 
-        console.log("successful variable declaration")
+        console.log(this.memory)
+    }
+    executeVariableAssignment(nodes) {
+        for (let nodeassign of nodes["assignments"]) {
+            console.log(nodeassign)
+            console.log(this.memory)
+            let existingVar = this.memory.find(variable => variable["name"] === nodeassign["variable"]);
+
+            if (existingVar) {
+                if (nodeassign["indicator"] == "value") {
+                    if (nodeassign["value"] != null) {
+                        if (existingVar["datatype"] == nodeassign["dtype"]) {
+                            let existingVarIndex = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
+                            this.memory[existingVarIndex].value = nodeassign["value"]
+                        }
+                        else {
+                            throw new Error("ERROR: Not valid value for type");
+                        }
+                    }
+                }
+                else {
+                    let existingVarVal = this.memory.find(variable => variable["name"] === nodeassign["value"]);
+                    if (existingVarVal) {
+                        if (existingVar["datatype"] == existingVarVal["datatype"]) {
+                            let change = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
+                            let valchange = this.memory.findIndex(variable => variable["name"] === nodeassign["value"]);
+
+                            this.memory[change].value = this.memory[valchange].value
+                        }
+                        else {
+                            throw new Error("ERROR: Not valid value for type");
+                        }
+                    }
+                    else {
+                        throw new Error("ERROR: Variable not found");
+                    }
+                }
+            }
+            else {
+                throw new Error("ERROR: Variable not found");
+            }
+        }
+        console.log(this.memory)
     }
 }
 
