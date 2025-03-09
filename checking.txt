@@ -2,9 +2,13 @@ SUGOD
 MUGNA NUMERO x, y = 21, z=5 
 MUGNA NUMERO a, b=34, c 
 
-MUGNA LETRA a_1='a'  
+MUGNA LETRA a_1='a'
+5
+"OO"
+"DILI"
 
 MUGNA TINUOD xx="OO" 
+4.6
 a = 45
 x = x= y = a
 

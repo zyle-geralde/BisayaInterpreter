@@ -228,6 +228,9 @@ class Parser{
                     console.log("ignore")
                     this.position+=1
                 }
+                else if (dtype.includes(this.token[this.position].type)) {
+                    this.position+=1
+                }
                 else if (this.token[this.position].type == TT_VAR_DEC) {
                     let vardecJson = this.variabelDeclaration()
                     ast.body.push(vardecJson)
