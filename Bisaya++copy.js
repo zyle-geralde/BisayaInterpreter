@@ -6,8 +6,9 @@ fs.readFile('checking.txt', 'utf8', (err, data) => {
     let interpreter = new Lexer(data)
     let get_tokens = interpreter.make_tokens()
     let parser = new Parser(get_tokens)
-    console.log(interpreter)
-    parser.parse()
+    let astTree = parser.parse()
+    let executer = new Interpreter(astTree)
+    console.log(    executer.execute())
     
 });
 
@@ -205,12 +206,6 @@ class Lexer{
     }
 }
 
-class ASTNODE{
-    constructor(type = null, attributes = {}) {
-        this.type = type
-        this.attributes = attributes
-    }
-}
 class Parser{
     constructor(token) {
         this.token = token
@@ -262,6 +257,7 @@ class Parser{
         else {
             throw new Error("ERROR: SUGOD missing");
         }
+        return ast
     }
     variabelDeclaration() {
         let vardec = {"type":null,"dataType":null,"variables":[]}
@@ -523,6 +519,41 @@ class Parser{
 
         console.log(printJSON)
         return printJSON
+    }
+}
+
+class Interpreter{
+    constructor(ast) {
+        this.ast = ast
+        this.memory = []
+    }
+
+    execute() {
+        for (let nodes of this.ast["body"]) {
+            if (nodes["type"] == 'VariableDeclaration') {
+                this.executeVariableDeclaration(nodes)
+            }
+        }
+    }
+
+    executeVariableDeclaration(nodes) {
+        for (let varhold of nodes["variables"]) {
+            if (this.memory.length != 0) {
+                let existingVar = this.memory.find(variable => variable["name"] === varhold["name"]);
+                if (existingVar) {
+                    throw new Error("ERROR: Variable already exist");
+                }
+                else {
+                    this.memory.push(varhold)
+                }
+            }
+            else {
+                this.memory.push(varhold)
+
+            }
+        }
+
+        console.log("successful variable declaration")
     }
 }
 
