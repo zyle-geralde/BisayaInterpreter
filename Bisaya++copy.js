@@ -30,6 +30,7 @@ TT_CONCAT = "CONCAT"
 TT_NEXTLINE = "NEXTLINE"
 TT_VAR_DEC = "VAR_DEC"
 TT_PRINT = "PRINT"
+TT_COLON="COLON"
 
 
 let keywords = [TT_SUGOD,TT_KATAPUSAN]
@@ -83,6 +84,11 @@ class Lexer{
             }
             else if (this.text[this.indx] == "$") {
                 let newtoken = new Token(this.text[this.indx], TT_NEXTLINE)
+                tokens.push(newtoken)
+                this.indx += 1
+            }
+            else if (this.text[this.indx] == ":") {
+                let newtoken = new Token(this.text[this.indx], TT_COLON)
                 tokens.push(newtoken)
                 this.indx += 1
             }
@@ -235,6 +241,10 @@ class Parser{
                     let vardecJson = this.variableAssignement()
                     ast.body.push(vardecJson)
                 }
+                else if (this.token[this.position].type == TT_PRINT) {
+                    let vardecJson = this.printFunction()
+                    ast.body.push(vardecJson)
+                }
                 else if (this.token[this.position].value == TT_KATAPUSAN) {
                     if (this.position+1 < this.token.length) {
                         throw new Error("Invalid Syntax");
@@ -368,7 +378,7 @@ class Parser{
                     let active = "equals"
                     while (true) {
                         if (this.position >= this.token.length) {
-                            throw new Error("ERROR: Missing KATAPUSAN");
+                            throw new Error("ERROR: Missing KATAPUSAN")
                         }
                         if (this.token[this.position].type == TT_NEWLINE) {
                             for (let n of holdVariable) {
@@ -444,6 +454,75 @@ class Parser{
 
         console.log(assignmentJSON)
         return assignmentJSON
+    }
+
+
+    printFunction() {
+        let printJSON = {"type":"PrintFunction","expression":[]}
+        this.position += 1
+        if (this.position < this.token.length) {
+            if (this.token[this.position].type != TT_COLON || this.token[this.position].type == TT_NEWLINE) {
+                throw new Error("COLON needed");
+            }
+            this.position += 1
+            if (this.position < this.token.length) {
+                if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE) {
+                    let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE? TT_NEXTLINE:"Unknown"), "name": this.token[this.position].value }
+                    printJSON["expression"].push(printElem)
+                }
+                else {
+                    throw new Error("Invalid format");
+                }
+            }
+            else {
+                throw new Error("ERROR: KATAPUSAN missing");
+            }
+            this.position += 1
+            
+            let beforeToken = "indetifier"
+            while (true) {
+                if (this.position >= this.token.length) {
+                    throw new Error("missing Katapusan");
+                }
+                if (this.token[this.position].type == TT_NEWLINE) {
+                    if (beforeToken == "indetifier") {
+                        break
+                    }
+                    else {
+                        throw new Error("Concat and Nextline should not be last");
+                    }
+                }
+                if (beforeToken == "indetifier") {
+                    if (this.token[this.position].type == TT_CONCAT) {
+                        let printElem = { "type": this.token[this.position].type, "name": this.token[this.position].value }
+                        printJSON["expression"].push(printElem)
+                        this.position += 1
+                        beforeToken = "nonindetifier"
+                    }
+                    else{
+                        throw new Error("Invalid Separation of Variables, string, indetifier");
+                    }
+                }
+                else {
+                    if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE) {
+                        let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE? TT_NEXTLINE:"Unknown"), "name": this.token[this.position].value }
+                        printJSON["expression"].push(printElem)
+                        this.position += 1
+                        beforeToken = "indetifier"
+                    }
+                    else {
+                        throw new Error("Invalid format");
+                    }
+                }
+            }
+
+        }
+        else {
+            throw new Error("ERROR: KATAPUSAN missing");
+        }
+
+        console.log(printJSON)
+        return printJSON
     }
 }
 

@@ -1,6 +1,14 @@
-SUGOD
-
+SUGOD  
+MUGNA NUMERO x, y, z=5  
+MUGNA LETRA a_1='n'  
+MUGNA TINUOD t="OO"  
+x=y
+MUGNA TINUOD tt="OO" 
+a_1=c=5
+IPAKITA : "OO" & T
 KATAPUSAN
+
+ 
 
 
     
