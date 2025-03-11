@@ -1,5 +1,5 @@
 TO DO:
-comments
+comments (implement parser finished lexer)
 DAWATA
 arithmetic
 Logical expressions
