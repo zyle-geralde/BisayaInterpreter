@@ -8,7 +8,7 @@ fs.readFile('checking.txt', 'utf8', (err, data) => {
     let parser = new Parser(get_tokens)
     let astTree = parser.parse()
     let executer = new Interpreter(astTree)
-    console.log(    executer.execute())
+    executer.execute()
     
 });
 
@@ -67,6 +67,25 @@ class Lexer{
                 this.indx += 1
                 let newtoken = new Token("\n", TT_NEWLINE)
                 tokens.push(newtoken)
+            }
+            else if (this.text[this.indx] == "-") {
+                if (this.indx+1 < this.text.length) {
+                    if (this.text[this.indx + 1] == "-") {
+                        let newtoken = new Token(this.text[this.indx]+this.text[this.indx+1], "Comment")
+                        tokens.push(newtoken)
+                        this.indx+=2
+                    }
+                    else {
+                        let newtoken = new Token(this.text[this.indx], "Not defined yet")
+                        tokens.push(newtoken)
+                        this.indx+=1
+                    }
+                }
+                else {
+                    let newtoken = new Token(this.text[this.indx], "Not defined yet")
+                    tokens.push(newtoken)
+                    this.indx+=1
+                }
             }
             else if (this.text[this.indx] == ",") {
                 let newtoken = new Token(this.text[this.indx], TT_COMMA)
@@ -559,7 +578,6 @@ class Interpreter{
             else if (nodes["type"] == "PrintFunction") {
                 let stringexec = this.executePrintFunction(nodes)
                 const result = stringexec.replaceAll('"', '').replaceAll("'", '');
-                console.log(stringexec)
 
                 console.log(result)
             }

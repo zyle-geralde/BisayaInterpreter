@@ -1,19 +1,17 @@
-SUGOD  
-MUGNA NUMERO x, y = 21, z=5 
-MUGNA NUMERO a, b=34, c 
+SUGOD
+MUGNA NUMERO x, y, z=5 
+MUGNA NUMERO a = 34, b=34, c 
 
 MUGNA LETRA a_1='a'
-5
-"OO"
-"DILI"
+
+a_1 = 'c'
 
 MUGNA TINUOD xx="OO" 
 4.6
-a = 45
 x = x= y = a
 
 MUGNA TINUOD tt="OO" 
-IPAKITA :b & ' ' & "Last of Us" & xx & 'l' & 45.6 & $ & "hello"
+IPAKITA :x & " " & a_1 & $ & ' '&"Hello"
 KATAPUSAN
 
  
