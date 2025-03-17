@@ -1,17 +1,21 @@
 SUGOD
-MUGNA NUMERO x, y, z=5 
+MUGNA NUMERO x, y, z=5  -- Mugna this then
 MUGNA NUMERO a = 34, b=34, c 
 
-MUGNA LETRA a_1='a'
 
+-- Go with the flow
+MUGNA LETRA a_1 = 'a'
 a_1 = 'c'
-
 MUGNA TINUOD xx="OO" 
 4.6
 x = x= y = a
 
+-- Night outside
 MUGNA TINUOD tt="OO" 
-IPAKITA :x & " " & a_1 & $ & ' '&"Hello"
+IPAKITA :x & " " & a_1 & $ & ' '&"Hello" & xx 
+
+DAWATA: hh, kk, hh, bb
+
 KATAPUSAN
 
  

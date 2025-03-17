@@ -31,7 +31,9 @@ TT_CONCAT = "CONCAT"
 TT_NEXTLINE = "NEXTLINE"
 TT_VAR_DEC = "VAR_DEC"
 TT_PRINT = "PRINT"
-TT_COLON="COLON"
+TT_COLON = "COLON"
+TT_COMMENT = "Comment"
+TT_DAWATA = "DAWATA"
 
 
 let keywords = [TT_SUGOD,TT_KATAPUSAN]
@@ -71,9 +73,24 @@ class Lexer{
             else if (this.text[this.indx] == "-") {
                 if (this.indx+1 < this.text.length) {
                     if (this.text[this.indx + 1] == "-") {
-                        let newtoken = new Token(this.text[this.indx]+this.text[this.indx+1], "Comment")
-                        tokens.push(newtoken)
                         this.indx+=2
+                        while (true) {
+                            if (this.indx >= this.text.length) {
+                                throw new Error("ERROR: Katapusan missing");
+                            }
+                            if ("\n".includes(this.text[this.indx])) {
+                                this.indx += 1
+                                let newtoken = new Token("\n", TT_NEWLINE)
+                                tokens.push(newtoken)
+                                console.log("Good slach n")
+                                break
+                            }
+                            this.indx+=1
+                        }
+                        
+                        /*let newtoken = new Token(this.text[this.indx]+this.text[this.indx+1], "Comment")
+                        tokens.push(newtoken)
+                        this.indx+=2*/
                     }
                     else {
                         let newtoken = new Token(this.text[this.indx], "Not defined yet")
@@ -137,6 +154,10 @@ class Lexer{
                 }
                 else if (value == TT_IPAKITA) {
                     let newtoken = new Token(value, TT_PRINT)
+                    tokens.push(newtoken)
+                }
+                else if (value == TT_DAWATA) {
+                    let newtoken = new Token(value, TT_DAWATA)
                     tokens.push(newtoken)
                 }
                 else if (!isNaN(value) || value.trim() === "") {
@@ -247,6 +268,7 @@ class Parser{
                     console.log("ignore")
                     this.position+=1
                 }
+
                 else if (dtype.includes(this.token[this.position].type)) {
                     this.position+=1
                 }
@@ -269,6 +291,11 @@ class Parser{
                     else {
                         break
                     }
+                }
+                else if (this.token[this.position].type == TT_DAWATA) { 
+                    let handleDAWAT = this.inputFunction()
+                    ast.body.push(handleDAWAT)
+                    //Implement HERE
                 }
                 else {
                     throw new Error("Invalid Syntax");
@@ -557,6 +584,73 @@ class Parser{
 
         console.log(printJSON)
         return printJSON
+    }
+
+    inputFunction() {
+        console.log("Input here implement")
+
+        //Implement here
+        let inputJson = { "type": "InputFunction", "varlist": [] }
+        
+        this.position += 1
+
+        if (this.position >= this.token.length) {
+            throw new Error("Katapusan missing");
+        }
+        if (this.token[this.position].type != TT_COLON) {
+            throw new Error("Colon needed in input function");
+        }
+
+        this.position += 1
+
+        if (this.position >= this.token.length) {
+            throw new Error("Katapusan missing");
+        }
+        if (this.token[this.position].type != TT_IDENTIFIER) {
+            throw new Error("Identifier needed in input function");
+        }
+        inputJson["varlist"].push({"dtype":this.token[this.position].type, "value":this.token[this.position].value })
+
+        this.position += 1
+        let valid = "identifier"
+        while (true) {
+            if (this.position >= this.token.length) {
+                throw new Error("Katapusan missing");
+            }
+            if (this.token[this.position].type == TT_NEWLINE) {
+                if (valid == "comma") {
+                    throw new Error("comma should not be last");
+                }
+                this.position += 1
+                break
+            }
+
+            if (this.token[this.position].type == TT_IDENTIFIER) {
+                if (valid == "comma") {
+                    inputJson["varlist"].push({"dtype":this.token[this.position].type, "value":this.token[this.position].value })
+                    valid = "identifier"
+                    this.position+=1
+                }
+                else {
+                    throw new Error("Comma before needed");
+                }
+            }
+            else if (this.token[this.position].type == TT_COMMA) {
+                if (valid == "identifier") {
+                    valid = "comma"
+                    this.position+=1
+                }
+                else {
+                    throw new Error("Identifier before needed");
+                }
+            }
+            else {
+                throw new Error("Invalid Dawata Syntax");
+            }
+        }
+
+        console.log("\n\n\n\n\n\n ------INPUT FUNCTION PARSER-----\n",inputJson,"\n\n--------END------")
+        return inputJson
     }
 }
 
