@@ -654,6 +654,21 @@ class Parser{
     }
 }
 
+function formatNumber(num) {
+    let floatNum = parseFloat(num); 
+
+    if (isNaN(floatNum)) {
+        throw new Error(`ERROR: Invalid number: "${num}"`); 
+    }
+
+    let decimalPart = floatNum % 1; 
+
+    if (decimalPart === 0) { 
+        return floatNum.toFixed(1); 
+    } 
+
+    return floatNum.toString();
+}
 class Interpreter{
     constructor(ast) {
         this.ast = ast
@@ -793,7 +808,6 @@ class Interpreter{
     
         let input = readlineSync.question("");
         values = input.split(",");
-        console.log("You entered:", values);
     
         if (values.length !== goodList.length) {
             throw new Error("ERROR: Invalid number of arguments in Input");
@@ -805,7 +819,15 @@ class Interpreter{
                     throw new Error(`ERROR: Invalid number: "${values[val]}"`);
                 } else {
                     let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
-                    this.memory[changeInp].value = parseInt(values[val]);
+                    this.memory[changeInp].value = parseInt(values[val]) + "";
+                }
+            }
+            else if (goodList[val].datatype === "TIPIK") {
+                if (isNaN(values[val]) || values[val].trim() === "") {
+                    throw new Error(`ERROR: Invalid number: "${values[val]}"`);
+                } else {
+                    let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
+                    this.memory[changeInp].value = formatNumber(values[val]);
                 }
             }
         }
