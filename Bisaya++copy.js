@@ -1,5 +1,5 @@
 const fs = require('fs');
-
+const readlineSync = require("readline-sync");
 
 fs.readFile('checking.txt', 'utf8', (err, data) => {
     if (err) { console.error('Error reading file:', err); return; }
@@ -675,6 +675,9 @@ class Interpreter{
 
                 console.log(result)
             }
+            else if (nodes["type"] == "InputFunction") {
+                this.executeInputFunction(nodes)
+            }
             else {
                 
             }
@@ -746,6 +749,7 @@ class Interpreter{
     }
 
     executePrintFunction(nodes) {
+        this.executeString=""
         for (let expr of nodes["expression"]) {
             if (expr["type"] == "Value") {
                 this.executeString += expr["name"]
@@ -773,6 +777,39 @@ class Interpreter{
         }
 
         return this.executeString
+    }
+    executeInputFunction(nodes) {
+        let values = [];
+        let goodList = [];
+    
+        for (let nn of nodes["varlist"]) {
+            let existingVarExprInput = this.memory.find(variable => variable["name"] === nn["value"]);
+            if (existingVarExprInput) {
+                goodList.push(existingVarExprInput);
+            } else {
+                throw new Error("ERROR: Variable does not exist on Input");
+            }
+        }
+    
+        let input = readlineSync.question("");
+        values = input.split(",");
+        console.log("You entered:", values);
+    
+        if (values.length !== goodList.length) {
+            throw new Error("ERROR: Invalid number of arguments in Input");
+        }
+    
+        for (let val = 0; val < values.length; val++) {
+            if (goodList[val].datatype === "NUMERO") {
+                if (isNaN(values[val]) || values[val].trim() === "") {
+                    throw new Error(`ERROR: Invalid number: "${values[val]}"`);
+                } else {
+                    let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
+                    this.memory[changeInp].value = parseInt(values[val]);
+                }
+            }
+        }
+
     }
 }
 

@@ -1,6 +1,7 @@
 SUGOD
 MUGNA NUMERO x, y, z=5  -- Mugna this then
-MUGNA NUMERO a = 34, b=34, c 
+MUGNA NUMERO a = 34, b=34, c = 99
+MUGNA TIPIK hello=45.9
 
 
 -- Go with the flow
@@ -12,9 +13,16 @@ x = x= y = a
 
 -- Night outside
 MUGNA TINUOD tt="OO" 
-IPAKITA :x & " " & a_1 & $ & ' '&"Hello" & xx 
+IPAKITA :x & " " & a_1 & $ & ' '&"Hello" & xx
+IPAKITA :c & ' ' & a & ' ' &z
 
-DAWATA: hh, kk, hh, bb
+DAWATA: c,a,z
+
+IPAKITA :"NEW VALUE: " &$&c & ' ' & a & ' ' &z
+
+DAWATA: c,z
+
+IPAKITA :"NEW VALUE: " &$&c & ' ' & a & ' ' &z
 
 KATAPUSAN
 

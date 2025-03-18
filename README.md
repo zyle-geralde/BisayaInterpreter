@@ -14,3 +14,8 @@ variable declaration
 variable initialization
 ipakita
 comments
+
+
+
+Packages need to download:
+readline-sync - npm install readline-sync
