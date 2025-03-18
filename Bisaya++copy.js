@@ -824,13 +824,34 @@ class Interpreter{
             }
             else if (goodList[val].datatype === "TIPIK") {
                 if (isNaN(values[val]) || values[val].trim() === "") {
-                    throw new Error(`ERROR: Invalid number: "${values[val]}"`);
+                    throw new Error(`ERROR: Invalid Decimal: "${values[val]}"`);
                 } else {
                     let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
                     this.memory[changeInp].value = formatNumber(values[val]);
                 }
             }
+            //LETRA should be like this "'h'"
+            else if (goodList[val].datatype === "LETRA") {
+                if (values[val].trim().length == 1) {
+                    let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
+                    this.memory[changeInp].value =  `\'${values[val].trim()}\'`;
+                }
+                else {
+                    throw new Error(`ERROR: Invalid Character: "'${values[val].trim()}'"`);
+                }
+            }
+            else if (goodList[val].datatype === "TINUOD") {
+                if (values[val].trim() == "OO"||values[val].trim() == "DILI") {
+                    let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
+                    this.memory[changeInp].value =  `\"${values[val].trim()}\"`;
+                }
+                else {
+                    throw new Error(`ERROR: Invalid Character: "'${values[val].trim()}'"`);
+                }
+            }
         }
+
+        console.log(this.memory)
 
     }
 }

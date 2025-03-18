@@ -6,6 +6,7 @@ MUGNA TIPIK hello=45.9,hi,momo=30.0
 
 -- Go with the flow
 MUGNA LETRA a_1 = 'a'
+MUGNA LETRA a_2 = 'b'
 a_1 = 'c'
 MUGNA TINUOD xx="OO" 
 4.6
@@ -13,18 +14,19 @@ x = x= y = a
 
 -- Night outside
 MUGNA TINUOD tt="OO" 
+MUGNA TINUOD vv="DILI" 
 IPAKITA :x & " " & a_1 & $ & ' '&"Hello" & xx
 IPAKITA :c & ' ' & a & ' ' &z
 
 IPAKITA :"ORIG VALUE: " &$&hello & ' ' & hi & ' ' &momo
 
-DAWATA: hello,hi,momo
+DAWATA: tt,vv
 
-IPAKITA :"NEW VALUE: " &$&hello & ' ' & hi & ' ' &momo
+IPAKITA :"NEW VALUE: " &$& tt & vv
 
-DAWATA: hello,momo
+DAWATA: tt  , vv
 
-IPAKITA :"NEW VALUE: " &$&hello & ' ' & hi & ' ' &momo
+IPAKITA :"NEW VALUE 2: " &$& tt & vv
 
 KATAPUSAN
 
