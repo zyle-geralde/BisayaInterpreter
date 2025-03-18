@@ -1,5 +1,4 @@
 TO DO:
-DAWATA (Finished parser do interpreter)
 arithmetic
 Logical expressions
 
@@ -14,6 +13,7 @@ variable declaration
 variable initialization
 ipakita
 comments
+DAWATA
 
 
 

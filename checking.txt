@@ -20,13 +20,10 @@ IPAKITA :c & ' ' & a & ' ' &z
 
 IPAKITA :"ORIG VALUE: " &$&hello & ' ' & hi & ' ' &momo
 
-DAWATA: tt,vv
+DAWATA: tt,a_1,hello,x
 
-IPAKITA :"NEW VALUE: " &$& tt & vv
+IPAKITA :"NEW VALUE: " &$& tt & a_1 &hello &x
 
-DAWATA: tt  , vv
-
-IPAKITA :"NEW VALUE 2: " &$& tt & vv
 
 KATAPUSAN
 
