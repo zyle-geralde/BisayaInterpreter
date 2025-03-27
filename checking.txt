@@ -1,11 +1,13 @@
 SUGOD
-MUGNA NUMERO x, y, z=5  -- Mugna this then
+MUGNA NUMERO x, y, z=5.0  -- Mugna this then
 MUGNA NUMERO p = 56 - 45 -23.9, t = -23
 
 MUGNA TIPIK jj = 56
 
+p = z = jj = 56.0+12
 
-IPAKITA: z & ' ' & y & ' ' & t & ' ' & p & ' ' & jj
+
+IPAKITA: jj & ' ' & t & ' '&z & ' ' & p
 KATAPUSAN
  
 

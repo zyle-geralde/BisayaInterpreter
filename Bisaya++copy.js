@@ -529,6 +529,50 @@ class Parser{
                             break
                         }
                         
+                        var copypos = this.position
+                        var evalString = ""
+                        var skip = false
+                        while (true) {
+                            if (copypos >= this.token.length) {
+                                throw new Error("ERROR: Missing KATAPUSAN")
+                            }
+
+                            if (this.token[copypos].value == "=") {
+                                console.log("Invalid Equal sign")
+                                break;
+                            }
+
+                            if (this.token[copypos].type == TT_NEWLINE) {
+                                let [output, error] = run("<stdin>", evalString);
+                                
+                                if (error) {
+                                    console.log("Invalid Expression")
+                                    break
+                                } else {
+                                    holdvalue = output.value+""
+                                    indicHold = "value"
+                                    active = "ident"
+                                    indicdtype = "EXPRESSION"
+
+                                    this.position = copypos
+
+                                    console.log(holdvalue)
+
+                                    skip= true
+                                    
+                                    break
+                                }
+                            }
+
+                            evalString += this.token[copypos].value
+                            copypos+=1
+
+                        }
+
+                        if (skip == true) {
+                            continue
+                        }
+
                         if (dtype.includes(this.token[this.position].type)) {
                             if (active != "equals") {
                                 throw new Error("Invalid value assignment");
@@ -797,7 +841,19 @@ class Interpreter{
             if (existingVar) {
                 if (nodeassign["indicator"] == "value") {
                     if (nodeassign["value"] != null) {
-                        if (existingVar["datatype"] == nodeassign["dtype"]) {
+                        if (nodeassign["dtype"] == "EXPRESSION") {
+                            let existingVarIndex = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
+                            if (existingVar["datatype"] == TT_NUMERO) {
+                                this.memory[existingVarIndex].value = parseInt(nodeassign["value"])+""
+                            }
+                            else if (existingVar["datatype"] == TT_TIPIK) {
+                                this.memory[existingVarIndex].value = formatNumber(nodeassign["value"]+"")
+                            }
+                            else {
+                                throw new Error("ERROR: Not valid value for type");
+                            }
+                        }
+                        else if (existingVar["datatype"] == nodeassign["dtype"]) {
                             let existingVarIndex = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
                             this.memory[existingVarIndex].value = nodeassign["value"]
                         }
@@ -809,7 +865,22 @@ class Interpreter{
                 else {
                     let existingVarVal = this.memory.find(variable => variable["name"] === nodeassign["value"]);
                     if (existingVarVal) {
-                        if (existingVar["datatype"] == existingVarVal["datatype"]) {
+                        if ((existingVar["datatype"] == TT_NUMERO || existingVar["datatype"] == TT_TIPIK) && (existingVarVal["datatype"] == TT_NUMERO || existingVarVal["datatype"] == TT_TIPIK)) {
+                            let change = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
+                            let valchange = this.memory.findIndex(variable => variable["name"] === nodeassign["value"]);
+
+                            
+                            if (this.memory[change].datatype == TT_NUMERO) {
+                                this.memory[change].value = parseInt(this.memory[valchange].value)+""
+                            }
+                            else if (this.memory[change].datatype == TT_TIPIK) {
+                                this.memory[change].value = formatNumber(this.memory[valchange].value+"")
+                            }
+                            else {
+                                throw new Error("ERROR: Not valid value for type");
+                            }
+                        }
+                        else if (existingVar["datatype"] == existingVarVal["datatype"]) {
                             let change = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
                             let valchange = this.memory.findIndex(variable => variable["name"] === nodeassign["value"]);
 

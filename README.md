@@ -1,5 +1,4 @@
 TO DO:
-arithmetic (Done in declaration, go to assignment operation)
 relational arithmetic(<= >=)
 Logical expressions
 AND OR etc.
@@ -17,6 +16,7 @@ variable initialization
 ipakita
 comments
 DAWATA
+arithmetic
 
 
 
