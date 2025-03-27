@@ -1,6 +1,8 @@
 TO DO:
-arithmetic
+arithmetic (Done in declaration, go to assignment operation)
+relational arithmetic(<= >=)
 Logical expressions
+AND OR etc.
 
 
 fix later:

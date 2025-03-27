@@ -1,6 +1,8 @@
 const fs = require('fs');
 const readlineSync = require("readline-sync");
 
+const { run } = require('./Bisaya++');
+
 fs.readFile('checking.txt', 'utf8', (err, data) => {
     if (err) { console.error('Error reading file:', err); return; }
     let interpreter = new Lexer(data)
@@ -44,6 +46,24 @@ let digit = "0123456789"
 let alphbetdigit = alphbet + digit + "_" + "."
 let alphnodigit = alphbet + "_"
 let alphanodot = alphbet+digit+"_"
+
+
+function formatNumber(num) {
+    let floatNum = parseFloat(num); 
+
+    if (isNaN(floatNum)) {
+        throw new Error(`ERROR: Invalid number: "${num}"`); 
+    }
+
+    let decimalPart = floatNum % 1; 
+
+    if (decimalPart === 0) { 
+        return floatNum.toFixed(1); 
+    } 
+
+    return floatNum.toString();
+}
+
 
 class Token{
     constructor(value = null,type = null) {
@@ -359,7 +379,7 @@ class Parser{
 
                         
                         //checking for arithmetic expression
-                        if (vardec["dataType"] == TT_NUMERO) {
+                        if (vardec["dataType"] == TT_NUMERO || vardec["dataType"] == TT_TIPIK) {
                             var holdString = ""
                             while (true) {
                                 if (this.position >= this.token.length) {
@@ -368,9 +388,23 @@ class Parser{
 
                                 if (this.token[this.position].type == TT_COMMA || this.token[this.position].type == TT_NEWLINE) {
                                     //pass to shell
-                                    console.log("\n\n\n\n\n\narithmetic out")
-                                    console.log(holdString)
-                                    console.log("arithmetic out\n\n\n\n\n")
+
+                                    let [output, error] = run("<stdin>", holdString);
+
+                                    if (error) {
+                                        throw new Error("ERROR: Invalid number");
+                                    } else {
+                                        if (vardec["dataType"] == TT_NUMERO) {
+                                            identifier_hold["value"] = parseInt(output.value) + ""
+                                        }
+                                        else {
+                                            identifier_hold["value"] = formatNumber(output.value+"") 
+                                        }
+                                        
+                                        
+                                        vardec.variables.push(identifier_hold)
+                                    }
+                                
                                     break
                                 }
 
@@ -702,21 +736,7 @@ class Parser{
     }
 }
 
-function formatNumber(num) {
-    let floatNum = parseFloat(num); 
 
-    if (isNaN(floatNum)) {
-        throw new Error(`ERROR: Invalid number: "${num}"`); 
-    }
-
-    let decimalPart = floatNum % 1; 
-
-    if (decimalPart === 0) { 
-        return floatNum.toFixed(1); 
-    } 
-
-    return floatNum.toString();
-}
 class Interpreter{
     constructor(ast) {
         this.ast = ast
