@@ -1,5 +1,5 @@
 const readline = require("readline");
-const basic = require("./Bisaya++copy.js"); 
+const basic = require("./Bisaya++.js"); 
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -7,7 +7,7 @@ const rl = readline.createInterface({
 });
 
 function startRepl() {
-    rl.question("Bisaya++copy > ", (text) => {
+    rl.question("Bisaya++ > ", (text) => {
         let [result, error] = basic.run('<stdin>',text);
 
         if (error) console.log(error.as_string());

@@ -321,8 +321,13 @@ class Parser{
             throw new Error("ERROR: Not a valid datatype");
 
         }
-        if (this.token[this.position].type == TT_NEWLINE) {
-            throw new Error("ERROR: No identifier");
+        if (this.position < this.token.length) {
+            if (this.token[this.position].type != TT_IDENTIFIER) {
+                throw new Error("ERROR: No identifier");
+            }
+        }
+        else {
+            throw new Error("ERROR: Missing Katpusan");
         }
 
         while (this.position < this.token.length) {
@@ -348,7 +353,50 @@ class Parser{
                 if (this.position < this.token.length) {
                     if (this.token[this.position].type == TT_ASSIGN) {
                         this.position += 1
-                        if (this.token[this.position].type == vardec["dataType"]) {
+                        if (this.position >= this.token.length) {
+                            throw new Error("ERROR: Missing Katapusan");
+                        }
+
+                        
+                        //checking for arithmetic expression
+                        if (vardec["dataType"] == TT_NUMERO) {
+                            var holdString = ""
+                            while (true) {
+                                if (this.position >= this.token.length) {
+                                    throw new Error("ERROR: Missing Katapusan");
+                                }
+
+                                if (this.token[this.position].type == TT_COMMA || this.token[this.position].type == TT_NEWLINE) {
+                                    //pass to shell
+                                    console.log("\n\n\n\n\n\narithmetic out")
+                                    console.log(holdString)
+                                    console.log("arithmetic out\n\n\n\n\n")
+                                    break
+                                }
+
+                                holdString += this.token[this.position].value
+                                this.position += 1
+
+
+                            }
+
+                            if (this.position < this.token.length) {
+                                if (this.token[this.position].type == TT_COMMA) {
+                                    if (this.position == this.token.length - 1) {
+                                        throw new Error("ERROR: Unprecedented comma");
+                                    }
+                                    else if (this.token[this.position + 1].type == TT_NEWLINE) {
+                                        throw new Error("ERROR: Unprecedented comma");
+                                    }
+                                }
+                                else if (this.token[this.position].type != TT_COMMA) {
+                                    if (this.token[this.position].type != TT_NEWLINE) {
+                                        throw new Error("ERROR: comma is needed");
+                                    }
+                                }
+                            }
+                        }
+                        else if (this.token[this.position].type == vardec["dataType"]) {
                             identifier_hold["value"] = this.token[this.position].value
                             this.position += 1
                             

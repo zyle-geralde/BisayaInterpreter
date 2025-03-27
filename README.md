@@ -5,6 +5,7 @@ Logical expressions
 
 fix later:
 rearding the & and $. when placed in a character or string should be treated as a concatination or nextline
+variable declaration should handle identifiers. Currently, it will return an error if declared with identifier
 
 Note - Go to Bisaya++copy.js
 
