@@ -248,6 +248,18 @@ class Lexer{
                     let newtoken = new Token(value, TT_DAWATA)
                     tokens.push(newtoken)
                 }
+                else if (value == TT_AND) {
+                    let newtoken = new Token(value, TT_AND)
+                    tokens.push(newtoken)
+                }
+                else if (value == TT_OR) {
+                    let newtoken = new Token(value, TT_OR)
+                    tokens.push(newtoken)
+                }
+                else if (value == TT_NOT) {
+                    let newtoken = new Token(value, TT_NOT)
+                    tokens.push(newtoken)
+                }
                 else if (!isNaN(value) || value.trim() === "") {
                     if (/^-?\d+$/.test(value)) {
                         let newtoken = new Token(value, TT_NUMERO)
