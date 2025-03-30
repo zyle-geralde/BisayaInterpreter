@@ -5,7 +5,6 @@ AND OR etc.
 modulo operator
 If else
 for loop
-
 escape sequence - []
 
 
