@@ -1,7 +1,5 @@
 TO DO:
-relational arithmetic(<= >=)
-Logical expressions
-AND OR etc.
+Logical expressions and comparison operator (finished lexer)
 modulo operator
 If else
 for loop
