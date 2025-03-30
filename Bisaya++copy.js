@@ -42,11 +42,15 @@ TT_GREATERTHANOREQUAL = "GreaterThanorEqual"
 TT_LESSTHANOREQUAL = "LessThanorEqual"
 TT_EQUAL = "Equal"
 TT_NOTEQUAL = "NotEqual"
+TT_AND = "UG"
+TT_OR = "O"
+TT_NOT = "DILI"
 
 
 let keywords = [TT_SUGOD,TT_KATAPUSAN]
 let dtype = [TT_NUMERO, TT_LETRA, TT_TINUOD, TT_TIPIK]
-let comparisson_operator = [TT_GREATERTHAN,TT_LESSTHAN,TT_GREATERTHANOREQUAL,TT_LESSTHANOREQUAL,TT_EQUAL,TT_NOTEQUAL]
+let comparisson_operator = [TT_GREATERTHAN, TT_LESSTHAN, TT_GREATERTHANOREQUAL, TT_LESSTHANOREQUAL, TT_EQUAL, TT_NOTEQUAL]
+let logical_Operator = [TT_AND,TT_OR,TT_NOT]
 
 let alphbet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 let digit = "0123456789"
@@ -137,9 +141,23 @@ class Lexer{
                 this.indx += 1
             }
             else if (this.text[this.indx] == "=") {
-                let newtoken = new Token(this.text[this.indx], TT_ASSIGN)
-                tokens.push(newtoken)
-                this.indx += 1
+                if (this.indx + 1 < this.text.length) {
+                    if (this.text[this.indx + 1] == "=") {
+                        let newtoken = new Token("==", TT_EQUAL)
+                        tokens.push(newtoken)
+                        this.indx += 2
+                    }
+                    else {
+                        let newtoken = new Token(this.text[this.indx], TT_ASSIGN)
+                        tokens.push(newtoken)
+                        this.indx += 1
+                    }
+                }
+                else {
+                    let newtoken = new Token(this.text[this.indx], TT_ASSIGN)
+                    tokens.push(newtoken)
+                    this.indx += 1
+                }
             }
             else if (this.text[this.indx] == "&") {
                 let newtoken = new Token(this.text[this.indx], TT_CONCAT)
@@ -155,6 +173,49 @@ class Lexer{
                 let newtoken = new Token(this.text[this.indx], TT_COLON)
                 tokens.push(newtoken)
                 this.indx += 1
+            }
+            else if (this.text[this.indx] == "<") {
+                if (this.indx + 1 < this.text.length) {
+                    if (this.text[this.indx + 1] == "=") {
+                        let newtoken = new Token("<=", TT_LESSTHANOREQUAL)
+                        tokens.push(newtoken)
+                        this.indx += 2
+                    }
+                    else if (this.text[this.indx + 1] == ">") {
+                        let newtoken = new Token("<>", TT_NOTEQUAL)
+                        tokens.push(newtoken)
+                        this.indx += 2
+                    }
+                    else {
+                        let newtoken = new Token(this.text[this.indx], TT_LESSTHAN)
+                        tokens.push(newtoken)
+                        this.indx += 1
+                    }
+                }
+                else {
+                    let newtoken = new Token(this.text[this.indx], TT_LESSTHAN)
+                    tokens.push(newtoken)
+                    this.indx += 1
+                }
+            }
+            else if (this.text[this.indx] == ">") {
+                if (this.indx + 1 < this.text.length) {
+                    if (this.text[this.indx + 1] == "=") {
+                        let newtoken = new Token(">=", TT_GREATERTHANOREQUAL)
+                        tokens.push(newtoken)
+                        this.indx += 2
+                    }
+                    else {
+                        let newtoken = new Token(this.text[this.indx], TT_GREATERTHAN)
+                        tokens.push(newtoken)
+                        this.indx += 1
+                    }
+                }
+                else {
+                    let newtoken = new Token(this.text[this.indx], TT_GREATERTHAN)
+                    tokens.push(newtoken)
+                    this.indx += 1
+                }
             }
             else if (alphbetdigit.includes(this.text[this.indx])) {
                 let start = this.indx

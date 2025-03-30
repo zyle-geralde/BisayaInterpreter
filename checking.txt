@@ -6,10 +6,7 @@ MUGNA LETRA a,b = 'e',c = a
 MUGNA NUMERO p = 56 - 45 + x, t = p + x - p
 
 MUGNA TIPIK jj = 9 + 34.6 --jj
---lllll
---sadffasfsd
 p = x = 45 *2 - p
-
 
 
 
