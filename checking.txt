@@ -1,13 +1,20 @@
+
 SUGOD
-MUGNA NUMERO x, y, z=5.0  -- Mugna this then
-MUGNA NUMERO p = 56 - 45 -23.9, t = -23
+MUGNA LETRA aa,bb = 'j',cc = bb
+MUGNA NUMERO x = 28
+MUGNA LETRA a,b = 'e',c = a
+MUGNA NUMERO p = 56 - 45 + x, t = p + x - p
 
-MUGNA TIPIK jj = 56
+MUGNA TIPIK jj = 9 + 34.6 --jj
+--lllll
+--sadffasfsd
+p = x = 45 *2 - p
 
-p = z = jj = 56.0+12
 
 
-IPAKITA: jj & ' ' & t & ' '&z & ' ' & p
+
+IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
+IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc
 KATAPUSAN
  
 

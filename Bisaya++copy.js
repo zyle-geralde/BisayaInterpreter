@@ -96,7 +96,7 @@ class Lexer{
                         this.indx+=2
                         while (true) {
                             if (this.indx >= this.text.length) {
-                                throw new Error("ERROR: Katapusan missing");
+                                throw new Error("ERROR: missing Katapusan");
                             }
                             if ("\n".includes(this.text[this.indx])) {
                                 this.indx += 1
@@ -270,11 +270,15 @@ class Parser{
     constructor(token) {
         this.token = token
         this.position = 0
+        this.variableCheck = []
     }
     parse() {
         let ast = { type: "Program", body: [] }
         
-        if (this.token[0].value == "SUGOD") {
+        if (this.token.length == 0) {
+            
+        }
+        else if (this.token[0].value == "SUGOD") {
             this.position += 1
             if (this.position >= this.token.length) {
                 throw new Error("ERROR: missing Katapusan");
@@ -331,6 +335,7 @@ class Parser{
     variabelDeclaration() {
         let vardec = {"type":null,"dataType":null,"variables":[]}
         vardec["type"] = "VariableDeclaration"
+
         
         this.position += 1
         if (this.position < this.token.length && this.token[this.position].type == TT_DTYPE) {
@@ -396,20 +401,46 @@ class Parser{
                                     } else {
                                         if (vardec["dataType"] == TT_NUMERO) {
                                             identifier_hold["value"] = parseInt(output.value) + ""
+
+                                            let identhold = identifier_hold;
+                                            identhold["datatype"] = TT_NUMERO
+                                            this.variableCheck.push(identhold)
                                         }
                                         else {
-                                            identifier_hold["value"] = formatNumber(output.value+"") 
+                                            identifier_hold["value"] = formatNumber(output.value + "") 
+                                            let identhold = identifier_hold;
+                                            identhold["datatype"] = TT_TIPIK
+                                            this.variableCheck.push(identhold)
                                         }
                                         
-                                        
+
                                         vardec.variables.push(identifier_hold)
+
+                                        console.log("Variable Check")
+                                        console.log(this.variableCheck)
                                     }
                                 
                                     break
                                 }
 
-                                holdString += this.token[this.position].value
-                                this.position += 1
+                                if (this.token[this.position].type == TT_IDENTIFIER) {
+                                    let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
+                                    console.log(existingVar)
+                                    console.log(this.variableCheck)
+
+                                    if (existingVar) {
+                                        holdString += existingVar["value"]
+                                    }
+                                    else {
+                                        throw new Error("ERROR: variable does not exist");
+                                    }
+                                    this.position += 1
+                                }
+                                else {
+                                    holdString += this.token[this.position].value
+                                    this.position += 1
+                                }
+                                console.log(holdString)
 
 
                             }
@@ -431,8 +462,11 @@ class Parser{
                             }
                         }
                         else if (this.token[this.position].type == vardec["dataType"]) {
+
                             identifier_hold["value"] = this.token[this.position].value
                             this.position += 1
+
+
                             
                             if (this.position < this.token.length) {
                                 if (this.token[this.position].type == TT_COMMA) {
@@ -449,8 +483,36 @@ class Parser{
                                     }
                                 }
                             }
-    
-    
+                            let identhold = identifier_hold;
+                            identhold["datatype"] = vardec["dataType"]
+                            this.variableCheck.push(identhold)
+
+                            vardec.variables.push(identifier_hold)
+                        }
+                        else if (this.token[this.position].type == TT_IDENTIFIER) {
+                            let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
+                            console.log(existingVar)
+                            console.log(this.variableCheck)
+
+                            if (existingVar) {
+                                if (existingVar["datatype"] == vardec["dataType"]) {
+                                    
+                                    identifier_hold["value"] = existingVar["value"]
+                                }
+                                else {
+                                    throw new Error("ERROR: Invalid Value of identifier");
+                                }
+                                
+                            }
+                            else {
+                                throw new Error("ERROR: variable does not exist");
+                            }
+                            this.position += 1
+
+                            let identhold = identifier_hold;
+                            identhold["datatype"] = vardec["dataType"]
+                            this.variableCheck.push(identhold)
+
                             vardec.variables.push(identifier_hold)
                         }
                         else {
@@ -473,6 +535,11 @@ class Parser{
                                 }
                             }
                         }
+
+                        let identhold = identifier_hold;
+                        identhold["datatype"] = vardec["dataType"]
+                        this.variableCheck.push(identhold)
+
                         vardec.variables.push(identifier_hold)
                     }
                 }
@@ -543,6 +610,7 @@ class Parser{
                             }
 
                             if (this.token[copypos].type == TT_NEWLINE) {
+                                let neweval = ""
                                 let [output, error] = run("<stdin>", evalString);
                                 
                                 if (error) {
@@ -564,8 +632,24 @@ class Parser{
                                 }
                             }
 
-                            evalString += this.token[copypos].value
-                            copypos+=1
+                            if (this.token[copypos].type == TT_IDENTIFIER) {
+                                let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[copypos].value);
+                                console.log(existingVar)
+                                console.log(this.variableCheck)
+
+                                if (existingVar) {
+                                    evalString += existingVar["value"]
+                                }
+                                else {
+                                    throw new Error("ERROR: variable does not exist");
+                                }
+                                copypos+=1
+                            }
+                            else {
+                                evalString += this.token[copypos].value
+                                copypos+=1
+                            }
+
 
                         }
 
