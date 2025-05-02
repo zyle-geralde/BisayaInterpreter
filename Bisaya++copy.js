@@ -758,7 +758,13 @@ class Parser {
                                     console.log("Invalid Expression")
                                     break
                                 } else {
-                                    holdvalue = output.value + ""
+                                    if (output.isBool == true) {
+                                        holdvalue = parseInt(output.value)  == 1 ? "OO":"DILI"
+                                    }
+                                    else{
+                                        holdvalue = output.value + ""
+                                    }
+                                    
                                     indicHold = "value"
                                     active = "ident"
                                     indicdtype = "EXPRESSION"
@@ -779,7 +785,16 @@ class Parser {
                                 console.log(this.variableCheck)
 
                                 if (existingVar) {
-                                    evalString += existingVar["value"]
+                                    if (existingVar["value"] == "DILI") {
+                                        evalString += " 0 "
+                                    }
+                                    else if (existingVar["value"] == "OO") {
+                                        evalString += " 1 "
+                                    }
+                                    else {
+                                        evalString += existingVar["value"]
+                                    }
+                                    
                                 }
                                 else {
                                     throw new Error("ERROR: variable does not exist");
@@ -787,7 +802,26 @@ class Parser {
                                 copypos += 1
                             }
                             else {
-                                evalString += this.token[copypos].value
+                                if (this.token[copypos].value == '"OO"') {
+                                    console.log("OO run")
+                                    evalString += " 1 "
+                                }
+                                else if (this.token[copypos].value == '"DILI"') {
+                                    evalString += " 0 "
+                                }
+                                else if (this.token[copypos].value == "DILI") {
+                                    evalString += " DILI "
+                                }
+                                else if (this.token[copypos].value == "UG") {
+                                    evalString += " UG "
+                                }
+                                else if (this.token[copypos].value == "O") {
+                                    evalString += " O "
+                                }
+                                else {
+                                    evalString += this.token[copypos].value
+                                }
+                                
                                 copypos += 1
                             }
 
@@ -1073,6 +1107,9 @@ class Interpreter {
                             }
                             else if (existingVar["datatype"] == TT_TIPIK) {
                                 this.memory[existingVarIndex].value = formatNumber(nodeassign["value"] + "")
+                            }
+                            else if (existingVar["datatype"] == TT_TINUOD) {
+                                this.memory[existingVarIndex].value = nodeassign["value"]+""
                             }
                             else {
                                 throw new Error("ERROR: Not valid value for type");

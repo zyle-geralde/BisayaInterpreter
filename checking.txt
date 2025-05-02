@@ -10,6 +10,7 @@ p = x = 45 *2 - p
 
 MUGNA TINUOD ja = "DILI", je = DILI"OO" , jc = "OO"
 MUGNA TINUOD kk = (ja O "DILI") UG jc 
+ja = DILI"DILI"
 
 
 IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
