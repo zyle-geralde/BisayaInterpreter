@@ -1,4 +1,3 @@
-
 SUGOD
 MUGNA LETRA aa,bb = 'j',cc = bb
 MUGNA NUMERO x = -28
@@ -23,8 +22,3 @@ IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
 IPAKITA: ja & ' ' & je & ' ' & jc &$ 
 IPAKITA: kk & $
 KATAPUSAN
- 
-
-
-    
-
