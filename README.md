@@ -1,5 +1,4 @@
 TO DO:
-Logical expressions and comparison operator (implement variable assignment)
 modulo operator
 If else
 for loop
@@ -19,6 +18,7 @@ ipakita
 comments
 DAWATA
 arithmetic
+Logical expressions and comparison operator
 
 
 
