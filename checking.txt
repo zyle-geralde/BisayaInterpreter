@@ -9,9 +9,13 @@ MUGNA TIPIK jj = 9 + 34.6 --jj
 p = x = 45 *2 - p
 
 MUGNA TINUOD ja = "DILI", je = DILI"OO" , jc = "OO"
-MUGNA TINUOD kk = (ja O "DILI") UG jc 
-ja = DILI"DILI"
+MUGNA TINUOD kk = (DILI ja O "DILI") O jc 
+ja = jc = "DILI"
+jc = (DILI ja O "DILI") O jc
 
+IPAKITA: "MATA"  & jc & $ 
+
+jc= "OO" UG ja
 
 IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
 IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$

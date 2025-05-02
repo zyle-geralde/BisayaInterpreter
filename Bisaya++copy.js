@@ -752,30 +752,36 @@ class Parser {
 
                             if (this.token[copypos].type == TT_NEWLINE) {
                                 let neweval = ""
-                                let [output, error] = run("<stdin>", evalString);
-
-                                if (error) {
-                                    console.log("Invalid Expression")
+                                if (evalString == '"OO"' || evalString == '"DILI"') {
+                                    holdvalue = evalString[0]
                                     break
-                                } else {
-                                    if (output.isBool == true) {
-                                        holdvalue = parseInt(output.value)  == 1 ? "OO":"DILI"
+                                }
+                                else {
+                                    let [output, error] = run("<stdin>", evalString);
+
+                                    if (error) {
+                                        console.log("Invalid Expression")
+                                        break
+                                    } else {
+                                        if (output.isBool == true) {
+                                            holdvalue = parseInt(output.value)  == 1 ? "OO":"DILI"
+                                        }
+                                        else{
+                                            holdvalue = output.value + ""
+                                        }
+                                        
+                                        indicHold = "value"
+                                        active = "ident"
+                                        indicdtype = "EXPRESSION"
+    
+                                        this.position = copypos
+    
+                                        console.log(holdvalue)
+    
+                                        skip = true
+    
+                                        break
                                     }
-                                    else{
-                                        holdvalue = output.value + ""
-                                    }
-                                    
-                                    indicHold = "value"
-                                    active = "ident"
-                                    indicdtype = "EXPRESSION"
-
-                                    this.position = copypos
-
-                                    console.log(holdvalue)
-
-                                    skip = true
-
-                                    break
                                 }
                             }
 
@@ -802,7 +808,11 @@ class Parser {
                                 copypos += 1
                             }
                             else {
-                                if (this.token[copypos].value == '"OO"') {
+                                if ((this.token[copypos].value == '"OO"' || this.token[copypos].value == '"DILI"') && this.token[copypos + 1].type == TT_NEWLINE) {
+                                    
+                                    evalString += this.token[copypos].value
+                                }
+                                else if (this.token[copypos].value == '"OO"') {
                                     console.log("OO run")
                                     evalString += " 1 "
                                 }
