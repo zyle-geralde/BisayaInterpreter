@@ -11,7 +11,7 @@ fs.readFile('checking.txt', 'utf8', (err, data) => {
     let astTree = parser.parse()
     let executer = new Interpreter(astTree)
     executer.execute()
-    
+
 });
 
 TT_SUGOD = "SUGOD"
@@ -47,43 +47,43 @@ TT_OR = "O"
 TT_NOT = "DILI"
 
 
-let keywords = [TT_SUGOD,TT_KATAPUSAN]
+let keywords = [TT_SUGOD, TT_KATAPUSAN]
 let dtype = [TT_NUMERO, TT_LETRA, TT_TINUOD, TT_TIPIK]
 let comparisson_operator = [TT_GREATERTHAN, TT_LESSTHAN, TT_GREATERTHANOREQUAL, TT_LESSTHANOREQUAL, TT_EQUAL, TT_NOTEQUAL]
-let logical_Operator = [TT_AND,TT_OR,TT_NOT]
+let logical_Operator = [TT_AND, TT_OR, TT_NOT]
 
 let alphbet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 let digit = "0123456789"
 let alphbetdigit = alphbet + digit + "_" + "."
 let alphnodigit = alphbet + "_"
-let alphanodot = alphbet+digit+"_"
+let alphanodot = alphbet + digit + "_"
 
 
 function formatNumber(num) {
-    let floatNum = parseFloat(num); 
+    let floatNum = parseFloat(num);
 
     if (isNaN(floatNum)) {
-        throw new Error(`ERROR: Invalid number: "${num}"`); 
+        throw new Error(`ERROR: Invalid number: "${num}"`);
     }
 
-    let decimalPart = floatNum % 1; 
+    let decimalPart = floatNum % 1;
 
-    if (decimalPart === 0) { 
-        return floatNum.toFixed(1); 
-    } 
+    if (decimalPart === 0) {
+        return floatNum.toFixed(1);
+    }
 
     return floatNum.toString();
 }
 
 
-class Token{
-    constructor(value = null,type = null) {
+class Token {
+    constructor(value = null, type = null) {
         this.value = value
         this.type = type
     }
 }
 
-class Lexer{
+class Lexer {
     constructor(text) {
         this.text = text.trim()
         this.indx = 0;
@@ -102,9 +102,9 @@ class Lexer{
                 tokens.push(newtoken)
             }
             else if (this.text[this.indx] == "-") {
-                if (this.indx+1 < this.text.length) {
+                if (this.indx + 1 < this.text.length) {
                     if (this.text[this.indx + 1] == "-") {
-                        this.indx+=2
+                        this.indx += 2
                         while (true) {
                             if (this.indx >= this.text.length) {
                                 throw new Error("ERROR: missing Katapusan");
@@ -116,9 +116,9 @@ class Lexer{
                                 console.log("Good slach n")
                                 break
                             }
-                            this.indx+=1
+                            this.indx += 1
                         }
-                        
+
                         /*let newtoken = new Token(this.text[this.indx]+this.text[this.indx+1], "Comment")
                         tokens.push(newtoken)
                         this.indx+=2*/
@@ -126,13 +126,13 @@ class Lexer{
                     else {
                         let newtoken = new Token(this.text[this.indx], "Not defined yet")
                         tokens.push(newtoken)
-                        this.indx+=1
+                        this.indx += 1
                     }
                 }
                 else {
                     let newtoken = new Token(this.text[this.indx], "Not defined yet")
                     tokens.push(newtoken)
-                    this.indx+=1
+                    this.indx += 1
                 }
             }
             else if (this.text[this.indx] == ",") {
@@ -265,7 +265,7 @@ class Lexer{
                         let newtoken = new Token(value, TT_NUMERO)
                         tokens.push(newtoken)
                     }
-                    else if(/^-?\d+\.\d+$/.test(value)){
+                    else if (/^-?\d+\.\d+$/.test(value)) {
                         let newtoken = new Token(value, TT_TIPIK)
                         tokens.push(newtoken)
                     }
@@ -297,7 +297,7 @@ class Lexer{
                             break
                         }
                         value += this.text[this.indx]
-                        this.indx+=1
+                        this.indx += 1
                     }
                 }
                 else if (value == "\"") {
@@ -308,7 +308,7 @@ class Lexer{
                             break
                         }
                         value += this.text[this.indx]
-                        this.indx+=1
+                        this.indx += 1
                     }
                 }
 
@@ -320,12 +320,12 @@ class Lexer{
                     let newtoken = new Token(value, "Not a Letter")
                     tokens.push(newtoken)
                 }
-                else if (/^".*"$/.test(value)) { 
+                else if (/^".*"$/.test(value)) {
                     if (value == "\"DILI\"" || value == "\"OO\"") {
                         let newtoken = new Token(value, TT_TINUOD)
                         tokens.push(newtoken)
                     }
-                    else{
+                    else {
                         let newtoken = new Token(value, TT_STRING)
                         tokens.push(newtoken)
                     }
@@ -338,7 +338,7 @@ class Lexer{
             else {
                 let newtoken = new Token(this.text[this.indx], "Not defined yet")
                 tokens.push(newtoken)
-                this.indx+=1
+                this.indx += 1
             }
         }
         console.log(tokens)
@@ -346,7 +346,7 @@ class Lexer{
     }
 }
 
-class Parser{
+class Parser {
     constructor(token) {
         this.token = token
         this.position = 0
@@ -354,9 +354,9 @@ class Parser{
     }
     parse() {
         let ast = { type: "Program", body: [] }
-        
+
         if (this.token.length == 0) {
-            
+
         }
         else if (this.token[0].value == "SUGOD") {
             this.position += 1
@@ -366,15 +366,15 @@ class Parser{
             if (this.token[this.position].type != TT_NEWLINE) {
                 throw new Error("ERROR: new line needed");
             }
-            this.position+=1
+            this.position += 1
             while (this.position < this.token.length) {
                 if (this.token[this.position].type == TT_NEWLINE) {
                     console.log("ignore")
-                    this.position+=1
+                    this.position += 1
                 }
 
                 else if (dtype.includes(this.token[this.position].type)) {
-                    this.position+=1
+                    this.position += 1
                 }
                 else if (this.token[this.position].type == TT_VAR_DEC) {
                     let vardecJson = this.variabelDeclaration()
@@ -389,21 +389,21 @@ class Parser{
                     ast.body.push(vardecJson)
                 }
                 else if (this.token[this.position].value == TT_KATAPUSAN) {
-                    if (this.position+1 < this.token.length) {
+                    if (this.position + 1 < this.token.length) {
                         throw new Error("Invalid Syntax");
                     }
                     else {
                         break
                     }
                 }
-                else if (this.token[this.position].type == TT_DAWATA) { 
+                else if (this.token[this.position].type == TT_DAWATA) {
                     let handleDAWAT = this.inputFunction()
                     ast.body.push(handleDAWAT)
                     //Implement HERE
                 }
                 else {
                     throw new Error("Invalid Syntax");
-                    this.position+=1
+                    this.position += 1
                 }
             }
         }
@@ -413,14 +413,14 @@ class Parser{
         return ast
     }
     variabelDeclaration() {
-        let vardec = {"type":null,"dataType":null,"variables":[]}
+        let vardec = { "type": null, "dataType": null, "variables": [] }
         vardec["type"] = "VariableDeclaration"
 
-        
+
         this.position += 1
         if (this.position < this.token.length && this.token[this.position].type == TT_DTYPE) {
             vardec["dataType"] = this.token[this.position].value
-            this.position+=1
+            this.position += 1
         }
         else {
             throw new Error("ERROR: Not a valid datatype");
@@ -438,7 +438,7 @@ class Parser{
         while (this.position < this.token.length) {
             console.log(vardec)
             if (this.token[this.position].type == TT_NEWLINE) {
-                this.position+=1
+                this.position += 1
                 break
             }
             if (this.token[this.position].type == TT_COMMA) {
@@ -462,9 +462,9 @@ class Parser{
                             throw new Error("ERROR: Missing Katapusan");
                         }
 
-                        
+
                         //checking for arithmetic expression
-                        if (vardec["dataType"] == TT_NUMERO || vardec["dataType"] == TT_TIPIK) {
+                        if (vardec["dataType"] == TT_NUMERO || vardec["dataType"] == TT_TIPIK || vardec["dataType"] == TT_TINUOD) {
                             var holdString = ""
                             while (true) {
                                 if (this.position >= this.token.length) {
@@ -473,33 +473,67 @@ class Parser{
 
                                 if (this.token[this.position].type == TT_COMMA || this.token[this.position].type == TT_NEWLINE) {
                                     //pass to shell
-
-                                    let [output, error] = run("<stdin>", holdString);
-
-                                    if (error) {
-                                        throw new Error("ERROR: Invalid number");
-                                    } else {
-                                        if (vardec["dataType"] == TT_NUMERO) {
-                                            identifier_hold["value"] = parseInt(output.value) + ""
-
-                                            let identhold = identifier_hold;
-                                            identhold["datatype"] = TT_NUMERO
-                                            this.variableCheck.push(identhold)
-                                        }
-                                        else {
-                                            identifier_hold["value"] = formatNumber(output.value + "") 
-                                            let identhold = identifier_hold;
-                                            identhold["datatype"] = TT_TIPIK
-                                            this.variableCheck.push(identhold)
-                                        }
+                                    
+                                    if ((holdString == '"OO"' || holdString == '"DILI"') && vardec["dataType"] == TT_TINUOD) {
                                         
+                                        identifier_hold["value"] = holdString
+                                        let identhold = identifier_hold;
+                                        identhold["datatype"] = TT_TINUOD
+                                        this.variableCheck.push(identhold)
 
                                         vardec.variables.push(identifier_hold)
 
                                         console.log("Variable Check")
                                         console.log(this.variableCheck)
+                                        console.log("HoldString: "+holdString)
                                     }
-                                
+                                    else {
+                                        let [output, error] = run("<stdin>", holdString);
+
+                                        if (error) {
+                                            throw new Error("ERROR: Invalid number");
+                                        } else {
+                                            if (vardec["dataType"] == TT_NUMERO || vardec["dataType"] == TT_TINUOD) {
+                                                if (vardec["dataType"] == TT_NUMERO && output.isBool == false) {
+                                                    identifier_hold["value"] = parseInt(output.value) + ""
+                                                    let identhold = identifier_hold;
+                                                    identhold["datatype"] = TT_NUMERO
+                                                    this.variableCheck.push(identhold)
+                                                }
+                                                else if (vardec["dataType"] == TT_TINUOD && output.isBool == true) {
+                                                    identifier_hold["value"] = parseInt(output.value) == 1 ? "OO" : "DILI"
+                                                    let identhold = identifier_hold;
+                                                    identhold["datatype"] = TT_TINUOD
+                                                    this.variableCheck.push(identhold)
+                                                }
+                                                else if (vardec["dataType"] == TT_TINUOD && output.isBool == false){
+                                                    identifier_hold["value"] = parseInt(output.value) == 1 ? "OO" : "DILI"
+                                                    let identhold = identifier_hold;
+                                                    identhold["datatype"] = TT_TINUOD
+                                                    this.variableCheck.push(identhold)
+                                                }
+                                                else {
+                                                    throw new Error("ERROR:Invalid Integer or Boolean");
+                                                }
+
+
+                                            }
+                                            else {
+                                                identifier_hold["value"] = formatNumber(output.value + "")
+                                                let identhold = identifier_hold;
+                                                identhold["datatype"] = TT_TIPIK
+                                                this.variableCheck.push(identhold)
+                                            }
+
+
+                                            vardec.variables.push(identifier_hold)
+
+                                            console.log("Variable Check")
+                                            console.log(this.variableCheck)
+                                        }
+
+
+                                    }
                                     break
                                 }
 
@@ -509,7 +543,16 @@ class Parser{
                                     console.log(this.variableCheck)
 
                                     if (existingVar) {
-                                        holdString += existingVar["value"]
+                                        if (existingVar["value"] == "DILI") {
+                                            holdString += " 0 "
+                                        }
+                                        else if (existingVar["value"] == "OO") {
+                                            holdString += " 1 "
+                                        }
+                                        else {
+                                            holdString += existingVar["value"]
+                                        }
+                                        
                                     }
                                     else {
                                         throw new Error("ERROR: variable does not exist");
@@ -517,7 +560,25 @@ class Parser{
                                     this.position += 1
                                 }
                                 else {
-                                    holdString += this.token[this.position].value
+                                    if (this.token[this.position].value == '"OO"') {
+                                        console.log("OO run")
+                                        holdString += " 1 "
+                                    }
+                                    else if (this.token[this.position].value == '"DILI"') {
+                                        holdString += " 0 "
+                                    }
+                                    else if (this.token[this.position].value == "DILI") {
+                                        holdString += " DILI "
+                                    }
+                                    else if (this.token[this.position].value == "UG") {
+                                        holdString += " UG "
+                                    }
+                                    else if (this.token[this.position].value == "O") {
+                                        holdString += " O "
+                                    }
+                                    else {
+                                        holdString += this.token[this.position].value
+                                    }
                                     this.position += 1
                                 }
                                 console.log(holdString)
@@ -547,7 +608,7 @@ class Parser{
                             this.position += 1
 
 
-                            
+
                             if (this.position < this.token.length) {
                                 if (this.token[this.position].type == TT_COMMA) {
                                     if (this.position == this.token.length - 1) {
@@ -576,13 +637,13 @@ class Parser{
 
                             if (existingVar) {
                                 if (existingVar["datatype"] == vardec["dataType"]) {
-                                    
+
                                     identifier_hold["value"] = existingVar["value"]
                                 }
                                 else {
                                     throw new Error("ERROR: Invalid Value of identifier");
                                 }
-                                
+
                             }
                             else {
                                 throw new Error("ERROR: variable does not exist");
@@ -645,7 +706,7 @@ class Parser{
         holdVariable.push(this.token[this.position].value)
         indicdtype = "none"
 
-        this.position+=1
+        this.position += 1
         if (this.position < this.token.length) {
             if (this.token[this.position].type == TT_ASSIGN) {
                 this.position += 1
@@ -667,15 +728,15 @@ class Parser{
                         if (this.position >= this.token.length) {
                             throw new Error("ERROR: Missing KATAPUSAN")
                         }
-                        if (this.token[this.position].type == TT_NEWLINE && active!="equals") {
+                        if (this.token[this.position].type == TT_NEWLINE && active != "equals") {
                             for (let n of holdVariable) {
-                                let assvarJSON = { "variable": n, "value": holdvalue,"indicator": indicHold, "dtype":indicdtype }
+                                let assvarJSON = { "variable": n, "value": holdvalue, "indicator": indicHold, "dtype": indicdtype }
                                 assignmentJSON["assignments"].push(assvarJSON)
                             }
-                            this.position+=1
+                            this.position += 1
                             break
                         }
-                        
+
                         var copypos = this.position
                         var evalString = ""
                         var skip = false
@@ -692,12 +753,12 @@ class Parser{
                             if (this.token[copypos].type == TT_NEWLINE) {
                                 let neweval = ""
                                 let [output, error] = run("<stdin>", evalString);
-                                
+
                                 if (error) {
                                     console.log("Invalid Expression")
                                     break
                                 } else {
-                                    holdvalue = output.value+""
+                                    holdvalue = output.value + ""
                                     indicHold = "value"
                                     active = "ident"
                                     indicdtype = "EXPRESSION"
@@ -706,8 +767,8 @@ class Parser{
 
                                     console.log(holdvalue)
 
-                                    skip= true
-                                    
+                                    skip = true
+
                                     break
                                 }
                             }
@@ -723,11 +784,11 @@ class Parser{
                                 else {
                                     throw new Error("ERROR: variable does not exist");
                                 }
-                                copypos+=1
+                                copypos += 1
                             }
                             else {
                                 evalString += this.token[copypos].value
-                                copypos+=1
+                                copypos += 1
                             }
 
 
@@ -752,7 +813,7 @@ class Parser{
                             if (this.token[this.position].type != TT_NEWLINE) {
                                 throw new Error("Invalid identifier assignment");
                             }
-                            
+
                         }
                         else if (this.token[this.position].type == TT_IDENTIFIER) {
                             if (active != "equals") {
@@ -762,14 +823,14 @@ class Parser{
                             indicHold = "indentifier"
                             indicdtype = "none"
                             holdVariable.push(this.token[this.position].value)
-                            active= "ident"
-                            this.position +=1
+                            active = "ident"
+                            this.position += 1
                         }
                         else if (this.token[this.position].type == TT_ASSIGN) {
                             if (active != "ident") {
                                 throw new Error("Invalid assignment position");
                             }
-                            active= "equals"
+                            active = "equals"
                             this.position += 1
                             if (this.position >= this.token.length) {
                                 throw new Error("ERROR: Missing KATAPUSAN");
@@ -790,10 +851,10 @@ class Parser{
             }
             else if (this.token[this.position].type == TT_NEWLINE) {
                 for (let n of holdVariable) {
-                    let assvarJSON = { "variable": n, "value": holdvalue,"indicator": "value", "dtype":indicdtype}
+                    let assvarJSON = { "variable": n, "value": holdvalue, "indicator": "value", "dtype": indicdtype }
                     assignmentJSON["assignments"].push(assvarJSON)
                 }
-                this.position+=1
+                this.position += 1
             }
             else {
                 throw new Error("ERROR: Missing equal sign");
@@ -809,7 +870,7 @@ class Parser{
 
 
     printFunction() {
-        let printJSON = {"type":"PrintFunction","expression":[]}
+        let printJSON = { "type": "PrintFunction", "expression": [] }
         this.position += 1
         if (this.position < this.token.length) {
             if (this.token[this.position].type != TT_COLON || this.token[this.position].type == TT_NEWLINE) {
@@ -818,7 +879,7 @@ class Parser{
             this.position += 1
             if (this.position < this.token.length) {
                 if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE) {
-                    let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE? TT_NEXTLINE:"Unknown"), "name": this.token[this.position].value }
+                    let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : "Unknown"), "name": this.token[this.position].value }
                     printJSON["expression"].push(printElem)
                 }
                 else {
@@ -829,7 +890,7 @@ class Parser{
                 throw new Error("ERROR: KATAPUSAN missing");
             }
             this.position += 1
-            
+
             let beforeToken = "indetifier"
             while (true) {
                 if (this.position >= this.token.length) {
@@ -850,13 +911,13 @@ class Parser{
                         this.position += 1
                         beforeToken = "nonindetifier"
                     }
-                    else{
+                    else {
                         throw new Error("Invalid Separation of Variables, string, indetifier");
                     }
                 }
                 else {
                     if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE) {
-                        let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE? TT_NEXTLINE:"Unknown"), "name": this.token[this.position].value }
+                        let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : "Unknown"), "name": this.token[this.position].value }
                         printJSON["expression"].push(printElem)
                         this.position += 1
                         beforeToken = "indetifier"
@@ -881,7 +942,7 @@ class Parser{
 
         //Implement here
         let inputJson = { "type": "InputFunction", "varlist": [] }
-        
+
         this.position += 1
 
         if (this.position >= this.token.length) {
@@ -899,7 +960,7 @@ class Parser{
         if (this.token[this.position].type != TT_IDENTIFIER) {
             throw new Error("Identifier needed in input function");
         }
-        inputJson["varlist"].push({"dtype":this.token[this.position].type, "value":this.token[this.position].value })
+        inputJson["varlist"].push({ "dtype": this.token[this.position].type, "value": this.token[this.position].value })
 
         this.position += 1
         let valid = "identifier"
@@ -917,9 +978,9 @@ class Parser{
 
             if (this.token[this.position].type == TT_IDENTIFIER) {
                 if (valid == "comma") {
-                    inputJson["varlist"].push({"dtype":this.token[this.position].type, "value":this.token[this.position].value })
+                    inputJson["varlist"].push({ "dtype": this.token[this.position].type, "value": this.token[this.position].value })
                     valid = "identifier"
-                    this.position+=1
+                    this.position += 1
                 }
                 else {
                     throw new Error("Comma before needed");
@@ -928,7 +989,7 @@ class Parser{
             else if (this.token[this.position].type == TT_COMMA) {
                 if (valid == "identifier") {
                     valid = "comma"
-                    this.position+=1
+                    this.position += 1
                 }
                 else {
                     throw new Error("Identifier before needed");
@@ -939,13 +1000,13 @@ class Parser{
             }
         }
 
-        console.log("\n\n\n\n\n\n ------INPUT FUNCTION PARSER-----\n",inputJson,"\n\n--------END------")
+        console.log("\n\n\n\n\n\n ------INPUT FUNCTION PARSER-----\n", inputJson, "\n\n--------END------")
         return inputJson
     }
 }
 
 
-class Interpreter{
+class Interpreter {
     constructor(ast) {
         this.ast = ast
         this.memory = []
@@ -970,7 +1031,7 @@ class Interpreter{
                 this.executeInputFunction(nodes)
             }
             else {
-                
+
             }
         }
     }
@@ -1008,10 +1069,10 @@ class Interpreter{
                         if (nodeassign["dtype"] == "EXPRESSION") {
                             let existingVarIndex = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
                             if (existingVar["datatype"] == TT_NUMERO) {
-                                this.memory[existingVarIndex].value = parseInt(nodeassign["value"])+""
+                                this.memory[existingVarIndex].value = parseInt(nodeassign["value"]) + ""
                             }
                             else if (existingVar["datatype"] == TT_TIPIK) {
-                                this.memory[existingVarIndex].value = formatNumber(nodeassign["value"]+"")
+                                this.memory[existingVarIndex].value = formatNumber(nodeassign["value"] + "")
                             }
                             else {
                                 throw new Error("ERROR: Not valid value for type");
@@ -1033,12 +1094,12 @@ class Interpreter{
                             let change = this.memory.findIndex(variable => variable["name"] === nodeassign["variable"]);
                             let valchange = this.memory.findIndex(variable => variable["name"] === nodeassign["value"]);
 
-                            
+
                             if (this.memory[change].datatype == TT_NUMERO) {
-                                this.memory[change].value = parseInt(this.memory[valchange].value)+""
+                                this.memory[change].value = parseInt(this.memory[valchange].value) + ""
                             }
                             else if (this.memory[change].datatype == TT_TIPIK) {
-                                this.memory[change].value = formatNumber(this.memory[valchange].value+"")
+                                this.memory[change].value = formatNumber(this.memory[valchange].value + "")
                             }
                             else {
                                 throw new Error("ERROR: Not valid value for type");
@@ -1067,7 +1128,7 @@ class Interpreter{
     }
 
     executePrintFunction(nodes) {
-        this.executeString=""
+        this.executeString = ""
         for (let expr of nodes["expression"]) {
             if (expr["type"] == "Value") {
                 this.executeString += expr["name"]
@@ -1076,7 +1137,7 @@ class Interpreter{
                 let existingVarExpr = this.memory.find(variable => variable["name"] === expr["name"]);
                 if (existingVarExpr) {
                     if (existingVarExpr["value"] != null) {
-                        this.executeString+=existingVarExpr["value"]
+                        this.executeString += existingVarExpr["value"]
                     }
                 }
                 else {
@@ -1084,13 +1145,13 @@ class Interpreter{
                 }
             }
             else if (expr["type"] == "String") {
-                this.executeString+=expr["name"]
+                this.executeString += expr["name"]
             }
             else if (expr["type"] == "NEXTLINE") {
                 this.executeString += "\n"
             }
             else {
-                
+
             }
         }
 
@@ -1099,7 +1160,7 @@ class Interpreter{
     executeInputFunction(nodes) {
         let values = [];
         let goodList = [];
-    
+
         for (let nn of nodes["varlist"]) {
             let existingVarExprInput = this.memory.find(variable => variable["name"] === nn["value"]);
             if (existingVarExprInput) {
@@ -1108,14 +1169,14 @@ class Interpreter{
                 throw new Error("ERROR: Variable does not exist on Input");
             }
         }
-    
+
         let input = readlineSync.question("");
         values = input.split(",");
-    
+
         if (values.length !== goodList.length) {
             throw new Error("ERROR: Invalid number of arguments in Input");
         }
-    
+
         for (let val = 0; val < values.length; val++) {
             if (goodList[val].datatype === "NUMERO") {
                 if (isNaN(values[val]) || values[val].trim() === "") {
@@ -1137,16 +1198,16 @@ class Interpreter{
             else if (goodList[val].datatype === "LETRA") {
                 if (values[val].trim().length == 1) {
                     let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
-                    this.memory[changeInp].value =  `\'${values[val].trim()}\'`;
+                    this.memory[changeInp].value = `\'${values[val].trim()}\'`;
                 }
                 else {
                     throw new Error(`ERROR: Invalid Character: "'${values[val].trim()}'"`);
                 }
             }
             else if (goodList[val].datatype === "TINUOD") {
-                if (values[val].trim() == "OO"||values[val].trim() == "DILI") {
+                if (values[val].trim() == "OO" || values[val].trim() == "DILI") {
                     let changeInp = this.memory.findIndex(variable => variable["name"] === goodList[val].name);
-                    this.memory[changeInp].value =  `\"${values[val].trim()}\"`;
+                    this.memory[changeInp].value = `\"${values[val].trim()}\"`;
                 }
                 else {
                     throw new Error(`ERROR: Invalid Character: "'${values[val].trim()}'"`);

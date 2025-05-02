@@ -1,17 +1,22 @@
 
 SUGOD
 MUGNA LETRA aa,bb = 'j',cc = bb
-MUGNA NUMERO x = 28
+MUGNA NUMERO x = -28
 MUGNA LETRA a,b = 'e',c = a
 MUGNA NUMERO p = 56 - 45 + x, t = p + x - p
 
 MUGNA TIPIK jj = 9 + 34.6 --jj
 p = x = 45 *2 - p
 
+MUGNA TINUOD ja = "DILI", je = DILI"OO" , jc = "OO"
+MUGNA TINUOD kk = (ja O "DILI") UG jc 
 
 
 IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
-IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc
+IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
+
+IPAKITA: ja & ' ' & je & ' ' & jc &$ 
+IPAKITA: kk & $
 KATAPUSAN
  
 

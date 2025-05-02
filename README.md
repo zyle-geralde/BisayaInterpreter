@@ -1,5 +1,5 @@
 TO DO:
-Logical expressions and comparison operator (finished lexer)
+Logical expressions and comparison operator (implement variable assignment)
 modulo operator
 If else
 for loop
