@@ -9,6 +9,9 @@ class TokenType {
     static DIV = "DIV"
     static LPAREN = "LPAREN"
     static RPAREN = "RPAREN"
+
+    static MODULO = "MODULO"
+
     static TT_EOF = "EOF"
     static TT_KEYWORD = 'KEYWORD'
     static TT_PLUS     	= 'PLUS'

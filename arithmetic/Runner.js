@@ -18,9 +18,10 @@ class Runner {
         if (result.error) {
             return [null, result.error];
         }
-
         const parser = new ArithmeticParser(result.tokens);
+        
         const ast = parser.parse();
+        // console.log("AST: ", ast);
         if (ast.error) {
             return [null, ast.error];
         }
@@ -30,7 +31,7 @@ class Runner {
         context.symbol_table = this.global_symbol_table;
 
         const resultint = interpreter.visit(ast.node, context);
-        console.log(resultint);
+        // console.log(resultint);
 
         return [resultint.value, resultint.error];
     }

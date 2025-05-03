@@ -118,6 +118,24 @@ class Number {
         copy.set_context(this.context);
         return copy;
     }
+    modulo(other) {
+        if (other instanceof Number) {
+            if (other.value === 0) {
+                return {
+                    result :null, 
+                    error :new RTError(other.pos_start, other.pos_end, "Modulo by zero", this.context)
+                };
+            }
+            return {
+                result : new Number(this.value % other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end),
+                error : null
+            };
+        }
+        return {
+            result:null, 
+            error:new RTError(this.pos_start, this.pos_end, "Invalid operation", this.context)
+        }
+    }
     toString() {
         return this.value.toString()
     }

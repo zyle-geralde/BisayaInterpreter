@@ -72,6 +72,13 @@ class ArithmeticLexer {
             else if (this.current_char === ">") {
                 tokens.push(this.make_greater_than())
             }
+
+            else if (this.current_char === "%") {
+                // console.log("Modulo!")
+                tokens.push(new Token(this.pos.copy(), TokenType.MODULO))
+                this.advance()
+            }
+
             else {
                 let pos_start = this.pos.copy();
                 let char = this.current_char

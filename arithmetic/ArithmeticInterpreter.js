@@ -6,12 +6,10 @@ class ArithmeticInterpreter {
         let method_name = `visit_${node.constructor.name}`
         let method = this[method_name] || this.no_visit_method;
         return method.call(this, node)
-
     }
     no_visit_method(node, context) {
         throw new Error(`No visit_${node.constructor.name} method defined`);
     }
-
     visit_NumberNode(node, context) {
         return new RTResult().success(new Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end))
         //console.log("Found number node!")
@@ -57,6 +55,11 @@ class ArithmeticInterpreter {
             ({ result, error } = left.anded_by(right));
         } else if (node.op_tok.matches(TokenType.TT_KEYWORD, 'O')) {
             ({ result, error } = left.ored_by(right));
+        } else if (node.op_tok.type == TokenType.MODULO) {
+            if (node.left_node.tok.type === TokenType.NUMERO && node.right_node.tok.type === TokenType.NUMERO) {
+                ({result, error} = left.modulo(right));
+            }
+            // console.log(node)
         }
         if (error) {
             return res.failure(error)

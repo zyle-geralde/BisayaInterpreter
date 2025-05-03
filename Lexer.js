@@ -31,7 +31,7 @@ class Lexer {
                                 this.indx += 1
                                 let newtoken = new Token("\n", TokenType.TT_NEWLINE)
                                 tokens.push(newtoken)
-                                console.log("Good slach n")
+                                // console.log("Good slach n")
                                 break
                             }
                             this.indx += 1
@@ -259,7 +259,7 @@ class Lexer {
                 this.indx += 1
             }
         }
-        console.log(tokens)
+        // console.log(tokens)
         return tokens
     }
 }

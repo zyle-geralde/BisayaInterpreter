@@ -49,12 +49,12 @@ class Interpreter {
             }
         }
 
-        console.log(this.memory)
+        // console.log(this.memory)
     }
     executeVariableAssignment(nodes) {
         for (let nodeassign of nodes["assignments"]) {
-            console.log(nodeassign)
-            console.log(this.memory)
+            // console.log(nodeassign)
+            // console.log(this.memory)
             let existingVar = this.memory.find(variable => variable["name"] === nodeassign["variable"]);
 
 
@@ -122,7 +122,7 @@ class Interpreter {
                 throw new Error("ERROR: Variable not found");
             }
         }
-        console.log(this.memory)
+        // console.log(this.memory)
     }
 
 
@@ -219,7 +219,7 @@ class Interpreter {
                 }
             }
         }
-        console.log(this.memory)
+        // console.log(this.memory)
     }
 }
 module.exports = { Interpreter };

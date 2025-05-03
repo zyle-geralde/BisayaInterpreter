@@ -30,6 +30,7 @@ class ArithmeticParser {
         let res = new ParseResult()
         let tok = this.current_tok
 
+        console.log("Token? ", tok.type)
         if ([TokenType.PLUS, TokenType.MINUS].includes(tok.type)) {
             res.register(this.advance())
             let factor = res.register(this.factor())
@@ -66,7 +67,7 @@ class ArithmeticParser {
         return this.bin_op(() => this.factor(), [TokenType.MUL, TokenType.DIV])
     }
     arith_expr() {
-        return this.bin_op(() => this.term(), [TokenType.TT_PLUS, TokenType.TT_MINUS]);
+        return this.bin_op(() => this.term(), [TokenType.TT_PLUS, TokenType.TT_MINUS, TokenType.MODULO]);
     }
     comp_expr() {
         let res = new ParseResult();

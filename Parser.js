@@ -26,7 +26,7 @@ class Parser {
             this.position += 1
             while (this.position < this.token.length) {
                 if (this.token[this.position].type == TokenType.TT_NEWLINE) {
-                    console.log("ignore")
+                    // console.log("ignore")
                     this.position += 1
                 }
                 else if (TokenType.dtype.includes(this.token[this.position].type)) {
@@ -78,8 +78,6 @@ class Parser {
             this.position += 1
         }
         else {
-            // console.log("Token: ", this.token[this.position])
-            // console.log("The Data Type: ", this.token[this.position].type)
 
             throw new Error("ERROR: Not a valid datatype");
 
@@ -96,7 +94,7 @@ class Parser {
 
 
         while (this.position < this.token.length) {
-            console.log(vardec)
+            // console.log(vardec)
             if (this.token[this.position].type == TokenType.TT_NEWLINE) {
                 this.position += 1
                 break
@@ -150,17 +148,18 @@ class Parser {
                                         vardec.variables.push(identifier_hold)
 
 
-                                        console.log("Variable Check")
-                                        console.log(this.variableCheck)
-                                        console.log("HoldString: "+holdString)
+                                        // console.log("Variable Check")
+                                        // console.log(this.variableCheck)
+                                        // console.log("HoldString: "+holdString)
                                     }
                                     else {
                                         let [output, error] = new Runner().run("<stdin>", holdString);
 
-
+                                        // console.log("Output ", output)
                                         if (error) {
                                             throw new Error("ERROR: Invalid number");
                                         } else {
+                                            
                                             if (vardec["dataType"] == TokenType.TT_NUMERO || vardec["dataType"] == TokenType.TT_TINUOD) {
                                                 if (vardec["dataType"] == TokenType.TT_NUMERO && output.isBool == false) {
                                                     identifier_hold["value"] = parseInt(output.value) + ""
@@ -201,8 +200,11 @@ class Parser {
                                             vardec.variables.push(identifier_hold)
 
 
-                                            console.log("Variable Check")
-                                            console.log(this.variableCheck)
+
+                                            // console.log("Output! " + output)
+
+                                            // console.log("Variable Check")
+                                            // console.log(this.variableCheck)
                                         }
 
 
@@ -387,7 +389,7 @@ class Parser {
             throw new Error("ERROR: Katapusan missing");
         }
 
-
+        // console.log("Variable Declaration JSON:", vardec)
         return vardec
     }
 
@@ -617,7 +619,7 @@ class Parser {
         }
 
 
-        console.log(assignmentJSON)
+        console.log("Assignment JSON:", assignmentJSON)
         return assignmentJSON
     }
 
