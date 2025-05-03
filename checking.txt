@@ -10,18 +10,24 @@ p = x = 45 *2 - p
 
 MUGNA TINUOD ja = "DILI", je = DILI"OO" , jc = "OO"
 MUGNA TINUOD kk = (DILI ja O "DILI") O jc 
-ja = jc = "DILI"
-jc = (DILI ja O "DILI") O jc
+ja = jc UG "OO"
+ja = "DILI"
+--jc = (DILI ja O "DILI") O jc
+MUGNA TINUOD jk = "OO"
+--DAWATA: jk
 
 IPAKITA: "MATA"  & jc & $ 
 
 jc= "OO" UG ja
 
+jk = ja = jk
+ja = jk
+
 IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
 IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
 
 IPAKITA: ja & ' ' & je & ' ' & jc &$ 
-IPAKITA: kk & $
+IPAKITA: kk & $ & jk & $
 KATAPUSAN
  
 

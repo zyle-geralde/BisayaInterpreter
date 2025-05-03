@@ -752,7 +752,9 @@ class Parser {
 
                             if (this.token[copypos].type == TT_NEWLINE) {
                                 let neweval = ""
+                                console.log(evalString)
                                 if (evalString == '"OO"' || evalString == '"DILI"') {
+                                    console.log(evalString)
                                     holdvalue = evalString[0]
                                     break
                                 }
@@ -791,7 +793,12 @@ class Parser {
                                 console.log(this.variableCheck)
 
                                 if (existingVar) {
-                                    if (existingVar["value"] == "DILI") {
+                                    console.log("CCg"+evalString)
+                                    if ((existingVar["value"] == "OO" || existingVar["value"] == "DILI") && (this.token[copypos + 1].type == TT_NEWLINE || this.token[copypos + 1].type == TT_ASSIGN) && evalString == "") {
+                                        
+                                        evalString += existingVar["value"]
+                                    }
+                                    else if (existingVar["value"] == "DILI") {
                                         evalString += " 0 "
                                     }
                                     else if (existingVar["value"] == "OO") {
@@ -808,7 +815,7 @@ class Parser {
                                 copypos += 1
                             }
                             else {
-                                if ((this.token[copypos].value == '"OO"' || this.token[copypos].value == '"DILI"') && this.token[copypos + 1].type == TT_NEWLINE) {
+                                if ((this.token[copypos].value == '"OO"' || this.token[copypos].value == '"DILI"') && this.token[copypos + 1].type == TT_NEWLINE && evalString == "") {
                                     
                                     evalString += this.token[copypos].value
                                 }
