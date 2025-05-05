@@ -3,7 +3,7 @@ const readlineSync = require("readline-sync");
 
 const { run } = require('./Bisaya++');
 
-fs.readFile('checking.txt', 'utf8', (err, data) => {
+fs.readFile('checking2.txt', 'utf8', (err, data) => {
     if (err) { console.error('Error reading file:', err); return; }
     let interpreter = new Lexer(data)
     let get_tokens = interpreter.make_tokens()
@@ -429,9 +429,8 @@ class Parser {
                     let vardecJson = this.printFunction()
                     ast.body.push(vardecJson)
                 }
-                else if (this.token[this.position].type == KUNG) {
-                    let vardecJson = this.ifStatement()
-                    ast.body.push(vardecJson)
+                else if (this.token[this.position].type == TT_KUNG) {
+                    this.ifStatement()
                 }
                 else if (this.token[this.position].value == TT_KATAPUSAN) {
                     if (this.position + 1 < this.token.length) {
@@ -447,7 +446,7 @@ class Parser {
                     //Implement HERE
                 }
                 else {
-                    throw new Error("Invalid Syntax");
+                    throw new Error("Invalid Syntax " + this.token[this.position].value);
                     this.position += 1
                 }
             }
@@ -1108,206 +1107,290 @@ class Parser {
 2 means the next else if
 ...*/
         let ifIndic = 0
-        //means that the if else is 
+        //means that the expression in the if or else if is "OO"
         let ifStay = false
         //check if the last elem is Pundok
         let isPundok = false
 
-        //check if the if is already executed or not
+        //check if the if or any else if statemen is already executed or not
         let execute = false
+
+        //Check if Kung is parsed
         let isKungExecuted = false
+
+        //Check if KungWala is parsed
         let isKungWalaExecuted = false
-        
+
         while (true) {
-            try {
+
+
+            if (this.position >= this.token.length) {
+                throw new Error("ERROR: Missing Katapusan");
+            }
+            /*if (isKungWalaExecuted == true) {
+                this.position+=1
+                return
+            }*/
+            if (isPundok == true) {
                 if (this.position >= this.token.length) {
                     throw new Error("ERROR: Missing Katapusan");
                 }
-                if (isPundok == true) {
+
+                while (true) {
                     if (this.position >= this.token.length) {
                         throw new Error("ERROR: Missing Katapusan");
                     }
+                    if (this.token[this.position].type == TT_NEWLINE) {
 
-                    while (true) {
-                        if (this.position >= this.token.length) {
-                            throw new Error("ERROR: Missing Katapusan");
-                        }
-                        if (this.token[this.position].type == TT_NEWLINE) {
-                            
-                        }
-                        else if (this.token[this.position].type == TT_LEFT_BRAC) {
-                            break
-                        }
-                        else {
-                            throw new Error("ERROR: Missing Bracket");
-                        }
-                        this.position+=1
                     }
-
-                    if (this.token[this.position].type == TT_LEFT_BRAC) {
-                        while (true) {
-                            if (this.position >= this.token.length) {
-                                throw new Error("ERROR: Missing Katapusan");
-                            }
-                            if (this.token[this.position].type == TT_RIGHT_BRAC) {
-                                if (ifStay == true) {
-                                    console.log("Executed " + `${0}th ` + "If")
-                                    executed = true
-                                }
-                                isPundok = false
-                                isKungExecuted = true
-
-                                //remove newlines
-                                while (true) {
-                                    if (this.position >= this.token.length) {
-                                        throw new Error("ERROR: Missing Katapusan");
-                                    }
-                                    if (this.token[this.position].type == TT_NEWLINE) {
-                                        
-                                    }
-                                    else if (this.token[this.position].type == TT_KUNGDILI || this.this.token[this.position].type == TT_KUNGWALA) {
-                                        //this.position+=1
-                                        this.position -=1
-                                        isKungExecuted = true;
-                                        break
-                                    }
-                                    this.position+=1
-                                }
-                                break
-                            }
-                            else {
-                                
-                            }
-                            this.position+=1
-                        }
+                    else if (this.token[this.position].type == TT_LEFT_BRAC) {
+                        break
                     }
                     else {
                         throw new Error("ERROR: Missing Bracket");
                     }
-                }
-                else if (this.token[this.position].value == "(") {
                     this.position += 1
+                }
 
-                    let holdString = ""
+                if (this.token[this.position].type == TT_LEFT_BRAC) {
                     while (true) {
                         if (this.position >= this.token.length) {
                             throw new Error("ERROR: Missing Katapusan");
                         }
-
-                        if (this.token[this.position].type == ")") {
-
-                            if (holdString == '"OO"') {
-                                ifStay = true
+                        if (this.token[this.position].type == TT_RIGHT_BRAC) {
+                            
+                            if (ifStay == true && execute == false) {
+                                console.log("Executed " + `${ifIndic}th ` + "If")
+                                execute = true
                             }
-                            else if (holdString == '"DILI"') {
-                                ifIndic += 1
-                                ifStay = false
-                            }
-                            else {
-                                let [output, error] = run("<stdin>", holdString);
+                            isPundok = false
+                            isKungExecuted = true
 
-                                if (error) {
-                                    throw new Error("ERROR: Should be TINUOD Datatype");
-                                } else {
-                                    if (output.isBool == true) {
-                                        if (output.value == 1) {
-                                            ifStay = true
-
-                                        }
-                                        else {
-                                            ifIndic += 1
-                                            ifStay = false
-
-                                        }
-                                    }
-                                    else {
-                                        throw new Error("ERROR: Should be TINUOD Datatype");
-                                    }
-                                }
-                            }
-
-                            //check if the next token is Pundok
                             this.position += 1
-
+                            //remove newlines
                             while (true) {
+                                console.log("Y "+this.token[this.position].value)
                                 if (this.position >= this.token.length) {
                                     throw new Error("ERROR: Missing Katapusan");
                                 }
                                 if (this.token[this.position].type == TT_NEWLINE) {
-                                    
+
                                 }
+                                else if (this.token[this.position].type == TT_KUNGDILI || this.token[this.position].type == TT_KUNGWALA) {
+                                    //this.position+=1
+                                    this.position -= 1
 
-
-                                else if (this.token[this.position].type == TT_PUNDOK) {
-                                    isPundok = true
                                     break
                                 }
                                 else {
-                                    throw new Error("ERROR: Invalid Data: Should be PUNDOK");
+                                    if (isKungWalaExecuted == true) {
+                                        this.position -= 1
+                                        return
+                                    }
+                                    if (isKungExecuted == true) {
+                                        this.position -= 1
+                                        break
+                                    } 
+                                    else {
+                                        throw new Error("ERROR: Invalid If Execution");
+                                    }
                                 }
                                 this.position += 1
                             }
                             break
                         }
+                        else {
 
-                        if (this.token[this.position].type == TT_IDENTIFIER) {
-                            let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
-                            console.log(existingVar)
-                            console.log(this.variableCheck)
+                        }
+                        this.position += 1
+                    }
+                }
+                else {
+                    throw new Error("ERROR: Missing Bracket");
+                }
+            }
+            else if (this.token[this.position].value == "(") {
+                this.position += 1
 
-                            if (existingVar) {
-                                if (existingVar["value"] == "DILI") {
-                                    holdString += " 0 "
-                                }
-                                else if (existingVar["value"] == "OO") {
-                                    holdString += " 1 "
-                                }
-                                else {
-                                    holdString += existingVar["value"]
-                                }
+                let holdString = ""
+                while (true) {
+                    if (this.position >= this.token.length) {
+                        throw new Error("ERROR: Missing Katapusan");
+                    }
 
-                            }
-                            else {
-                                throw new Error("ERROR: variable does not exist");
-                            }
-                            this.position += 1
+                    if (this.token[this.position].value == ")") {
+
+                        if (holdString == '"OO"') {
+                            ifIndic += 1
+                            ifStay = true
+                        }
+                        else if (holdString == '"DILI"') {
+                            ifIndic += 1
+                            ifStay = false
                         }
                         else {
-                            if (this.token[this.position].value == '"OO"') {
-                                console.log("OO run")
-                                holdString += " 1 "
+                            let [output, error] = run("<stdin>", holdString);
+
+                            if (error) {
+                                throw new Error("ERROR: Should be TINUOD Datatype");
+                            } else {
+                                if (output.isBool == true) {
+                                    if (output.value == 1) {
+                                        ifIndic += 1
+                                        ifStay = true
+
+                                    }
+                                    else {
+                                        ifIndic += 1
+                                        ifStay = false
+
+                                    }
+                                }
+                                else {
+                                    throw new Error("ERROR: Should be TINUOD Datatype");
+                                }
                             }
-                            else if (this.token[this.position].value == '"DILI"') {
-                                holdString += " 0 "
+                        }
+
+                        //check if the next token is Pundok
+                        this.position += 1
+
+                        while (true) {
+                            if (this.position >= this.token.length) {
+                                throw new Error("ERROR: Missing Katapusan");
                             }
-                            else if (this.token[this.position].value == "DILI") {
-                                holdString += " DILI "
+                            if (this.token[this.position].type == TT_NEWLINE) {
+
                             }
-                            else if (this.token[this.position].value == "UG") {
-                                holdString += " UG "
-                            }
-                            else if (this.token[this.position].value == "O") {
-                                holdString += " O "
+
+
+                            else if (this.token[this.position].type == TT_PUNDOK) {
+                                isPundok = true
+                                break
                             }
                             else {
-                                holdString += this.token[this.position].value
+                                throw new Error("ERROR: Invalid Data: Should be PUNDOK");
                             }
                             this.position += 1
                         }
-                        console.log(holdString)
+                        break
+                    }
 
+                    if (this.token[this.position].type == TT_IDENTIFIER) {
+                        let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
+                        console.log(existingVar)
+                        console.log(this.variableCheck)
+
+                        if (existingVar) {
+                            if (existingVar["value"] == "DILI") {
+                                holdString += " 0 "
+                            }
+                            else if (existingVar["value"] == "OO") {
+                                holdString += " 1 "
+                            }
+                            else {
+                                holdString += existingVar["value"]
+                            }
+
+                        }
+                        else {
+                            throw new Error("ERROR: variable does not exist");
+                        }
+                        this.position += 1
+                    }
+                    else {
+                        if (this.token[this.position].value == '"OO"') {
+                            console.log("OO run")
+                            holdString += " 1 "
+                        }
+                        else if (this.token[this.position].value == '"DILI"') {
+                            holdString += " 0 "
+                        }
+                        else if (this.token[this.position].value == "DILI") {
+                            holdString += " DILI "
+                        }
+                        else if (this.token[this.position].value == "UG") {
+                            holdString += " UG "
+                        }
+                        else if (this.token[this.position].value == "O") {
+                            holdString += " O "
+                        }
+                        else {
+                            holdString += this.token[this.position].value
+                        }
+                        this.position += 1
+                    }
+                    console.log(holdString)
+
+
+                }
+
+            }
+            else if (this.token[this.position].type == TT_KUNGDILI) {
+                console.log("Run kung dili")
+                if (isKungExecuted == false) {
+                    throw new Error("Invalid KUNGDILI Position");
+                }
+                if (isKungWalaExecuted == true) {
+                    throw new Error("Invalid KUNGDILI Position");
+                }
+
+                if (this.position + 1 >= this.token.length) {
+                    throw new Error("ERROR: Missing Katapusan");
+                }
+
+                if (this.token[this.position + 1].value != "(") {
+                    throw new Error("ERROR: Lack '('");
+                }
+
+            }
+            else if (this.token[this.position].type == TT_KUNGWALA) {
+                if (isKungExecuted == false) {
+                    throw new Error("Invalid KUNGWALA Position");
+                }
+                if (this.position + 1 >= this.token.length) {
+                    throw new Error("ERROR: Missing Katapusan");
+                }
+
+                //Remove all new lines
+                //check if the next token is Pundok
+                this.position += 1
+
+                while (true) {
+                    if (this.position >= this.token.length) {
+                        throw new Error("ERROR: Missing Katapusan");
+                    }
+                    if (this.token[this.position].type == TT_NEWLINE) {
 
                     }
 
-                }
-                else {
-                    throw new Error("ERROR: Missing (");
+
+                    else if (this.token[this.position].type == TT_PUNDOK) {
+                        isPundok = true
+                        ifIndic += 1
+                        ifStay = true
+                        isKungWalaExecuted = true
+                        break
+                    }
+                    else {
+                        throw new Error("ERROR: Invalid Data: Should be PUNDOK");
+                    }
+                    this.position += 1
                 }
 
-                this.position += 1
-            } catch (e) {
-                console.log("Error occurred:", e.message);
+
             }
+            else {
+                if (isKungExecuted == true) {
+                    console.log(this.token[this.position].value)
+                    this.position += 1
+                    break
+                }
+                throw new Error("ERROR: Missing (");
+            }
+
+            this.position += 1
+            console.log("HELLO"+this.token[this.position].value)
         }
     }
 }
