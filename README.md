@@ -24,3 +24,6 @@ Logical expressions and comparison operator
 
 Packages need to download:
 readline-sync - npm install readline-sync
+
+
+Line 1167 ka last

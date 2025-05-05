@@ -46,8 +46,8 @@ TT_AND = "UG"
 TT_OR = "O"
 TT_NOT = "DILI"
 TT_KUNG = "KUNG"
-TT_DILI = "KDILI"
-TT_WALA = "KWALA"
+TT_KUNGDILI = "KUNG DILI"
+TT_KUNGWALA = "KUNG WALA"
 TT_PUNDOK = "PUNDOK"
 TT_LEFT_BRAC = "LEFT BRAC"
 TT_RIGHT_BRAC = "RIGHT BRAC"
@@ -274,14 +274,14 @@ class Lexer {
                 }
                 else if (value == TT_NOT) {
                     if (tokens[tokens.length - 1].value == TT_KUNG) {
-                        let newtoken = new Token(value, TT_DILI)
-                        tokens.push(newtoken)
+                        tokens[tokens.length - 1].value = TT_KUNGDILI
+                        tokens[tokens.length - 1].type = TT_KUNGDILI
                     }
                     else {
                         let newtoken = new Token(value, TT_NOT)
                         tokens.push(newtoken)
                     }
-                    
+
                 }
                 else if (value == TT_KUNG) {
                     let newtoken = new Token(value, TT_KUNG)
@@ -289,8 +289,8 @@ class Lexer {
                 }
                 else if (value == "WALA") {
                     if (tokens[tokens.length - 1].value == TT_KUNG) {
-                        let newtoken = new Token(value, TT_WALA)
-                        tokens.push(newtoken)
+                        tokens[tokens.length - 1].value = TT_KUNGWALA
+                        tokens[tokens.length - 1].type = TT_KUNGWALA
                     }
                     else {
                         let newtoken = new Token(value, TT_IDENTIFIER)
@@ -429,6 +429,10 @@ class Parser {
                     let vardecJson = this.printFunction()
                     ast.body.push(vardecJson)
                 }
+                else if (this.token[this.position].type == KUNG) {
+                    let vardecJson = this.ifStatement()
+                    ast.body.push(vardecJson)
+                }
                 else if (this.token[this.position].value == TT_KATAPUSAN) {
                     if (this.position + 1 < this.token.length) {
                         throw new Error("Invalid Syntax");
@@ -514,9 +518,9 @@ class Parser {
 
                                 if (this.token[this.position].type == TT_COMMA || this.token[this.position].type == TT_NEWLINE) {
                                     //pass to shell
-                                    
+
                                     if ((holdString == '"OO"' || holdString == '"DILI"') && vardec["dataType"] == TT_TINUOD) {
-                                        
+
                                         identifier_hold["value"] = holdString
                                         let identhold = identifier_hold;
                                         identhold["datatype"] = TT_TINUOD
@@ -526,7 +530,7 @@ class Parser {
 
                                         console.log("Variable Check")
                                         console.log(this.variableCheck)
-                                        console.log("HoldString: "+holdString)
+                                        console.log("HoldString: " + holdString)
                                     }
                                     else {
                                         let [output, error] = run("<stdin>", holdString);
@@ -547,7 +551,7 @@ class Parser {
                                                     identhold["datatype"] = TT_TINUOD
                                                     this.variableCheck.push(identhold)
                                                 }
-                                                else if (vardec["dataType"] == TT_TINUOD && output.isBool == false){
+                                                else if (vardec["dataType"] == TT_TINUOD && output.isBool == false) {
                                                     identifier_hold["value"] = parseInt(output.value) == 1 ? "OO" : "DILI"
                                                     let identhold = identifier_hold;
                                                     identhold["datatype"] = TT_TINUOD
@@ -593,7 +597,7 @@ class Parser {
                                         else {
                                             holdString += existingVar["value"]
                                         }
-                                        
+
                                     }
                                     else {
                                         throw new Error("ERROR: variable does not exist");
@@ -807,22 +811,22 @@ class Parser {
                                         break
                                     } else {
                                         if (output.isBool == true) {
-                                            holdvalue = parseInt(output.value)  == 1 ? "OO":"DILI"
+                                            holdvalue = parseInt(output.value) == 1 ? "OO" : "DILI"
                                         }
-                                        else{
+                                        else {
                                             holdvalue = output.value + ""
                                         }
-                                        
+
                                         indicHold = "value"
                                         active = "ident"
                                         indicdtype = "EXPRESSION"
-    
+
                                         this.position = copypos
-    
+
                                         console.log(holdvalue)
-    
+
                                         skip = true
-    
+
                                         break
                                     }
                                 }
@@ -834,9 +838,9 @@ class Parser {
                                 console.log(this.variableCheck)
 
                                 if (existingVar) {
-                                    console.log("CCg"+evalString)
+                                    console.log("CCg" + evalString)
                                     if ((existingVar["value"] == "OO" || existingVar["value"] == "DILI") && (this.token[copypos + 1].type == TT_NEWLINE || this.token[copypos + 1].type == TT_ASSIGN) && evalString == "") {
-                                        
+
                                         evalString += existingVar["value"]
                                     }
                                     else if (existingVar["value"] == "DILI") {
@@ -848,7 +852,7 @@ class Parser {
                                     else {
                                         evalString += existingVar["value"]
                                     }
-                                    
+
                                 }
                                 else {
                                     throw new Error("ERROR: variable does not exist");
@@ -857,7 +861,7 @@ class Parser {
                             }
                             else {
                                 if ((this.token[copypos].value == '"OO"' || this.token[copypos].value == '"DILI"') && this.token[copypos + 1].type == TT_NEWLINE && evalString == "") {
-                                    
+
                                     evalString += this.token[copypos].value
                                 }
                                 else if (this.token[copypos].value == '"OO"') {
@@ -879,7 +883,7 @@ class Parser {
                                 else {
                                     evalString += this.token[copypos].value
                                 }
-                                
+
                                 copypos += 1
                             }
 
@@ -1095,6 +1099,217 @@ class Parser {
         console.log("\n\n\n\n\n\n ------INPUT FUNCTION PARSER-----\n", inputJson, "\n\n--------END------")
         return inputJson
     }
+
+    ifStatement() {
+        this.position += 1
+
+        /*0 means if
+1 means else if
+2 means the next else if
+...*/
+        let ifIndic = 0
+        //means that the if else is 
+        let ifStay = false
+        //check if the last elem is Pundok
+        let isPundok = false
+
+        //check if the if is already executed or not
+        let execute = false
+        let isKungExecuted = false
+        let isKungWalaExecuted = false
+        
+        while (true) {
+            try {
+                if (this.position >= this.token.length) {
+                    throw new Error("ERROR: Missing Katapusan");
+                }
+                if (isPundok == true) {
+                    if (this.position >= this.token.length) {
+                        throw new Error("ERROR: Missing Katapusan");
+                    }
+
+                    while (true) {
+                        if (this.position >= this.token.length) {
+                            throw new Error("ERROR: Missing Katapusan");
+                        }
+                        if (this.token[this.position].type == TT_NEWLINE) {
+                            
+                        }
+                        else if (this.token[this.position].type == TT_LEFT_BRAC) {
+                            break
+                        }
+                        else {
+                            throw new Error("ERROR: Missing Bracket");
+                        }
+                        this.position+=1
+                    }
+
+                    if (this.token[this.position].type == TT_LEFT_BRAC) {
+                        while (true) {
+                            if (this.position >= this.token.length) {
+                                throw new Error("ERROR: Missing Katapusan");
+                            }
+                            if (this.token[this.position].type == TT_RIGHT_BRAC) {
+                                if (ifStay == true) {
+                                    console.log("Executed " + `${0}th ` + "If")
+                                    executed = true
+                                }
+                                isPundok = false
+                                isKungExecuted = true
+
+                                //remove newlines
+                                while (true) {
+                                    if (this.position >= this.token.length) {
+                                        throw new Error("ERROR: Missing Katapusan");
+                                    }
+                                    if (this.token[this.position].type == TT_NEWLINE) {
+                                        
+                                    }
+                                    else if (this.token[this.position].type == TT_KUNGDILI || this.this.token[this.position].type == TT_KUNGWALA) {
+                                        //this.position+=1
+                                        this.position -=1
+                                        isKungExecuted = true;
+                                        break
+                                    }
+                                    this.position+=1
+                                }
+                                break
+                            }
+                            else {
+                                
+                            }
+                            this.position+=1
+                        }
+                    }
+                    else {
+                        throw new Error("ERROR: Missing Bracket");
+                    }
+                }
+                else if (this.token[this.position].value == "(") {
+                    this.position += 1
+
+                    let holdString = ""
+                    while (true) {
+                        if (this.position >= this.token.length) {
+                            throw new Error("ERROR: Missing Katapusan");
+                        }
+
+                        if (this.token[this.position].type == ")") {
+
+                            if (holdString == '"OO"') {
+                                ifStay = true
+                            }
+                            else if (holdString == '"DILI"') {
+                                ifIndic += 1
+                                ifStay = false
+                            }
+                            else {
+                                let [output, error] = run("<stdin>", holdString);
+
+                                if (error) {
+                                    throw new Error("ERROR: Should be TINUOD Datatype");
+                                } else {
+                                    if (output.isBool == true) {
+                                        if (output.value == 1) {
+                                            ifStay = true
+
+                                        }
+                                        else {
+                                            ifIndic += 1
+                                            ifStay = false
+
+                                        }
+                                    }
+                                    else {
+                                        throw new Error("ERROR: Should be TINUOD Datatype");
+                                    }
+                                }
+                            }
+
+                            //check if the next token is Pundok
+                            this.position += 1
+
+                            while (true) {
+                                if (this.position >= this.token.length) {
+                                    throw new Error("ERROR: Missing Katapusan");
+                                }
+                                if (this.token[this.position].type == TT_NEWLINE) {
+                                    
+                                }
+
+
+                                else if (this.token[this.position].type == TT_PUNDOK) {
+                                    isPundok = true
+                                    break
+                                }
+                                else {
+                                    throw new Error("ERROR: Invalid Data: Should be PUNDOK");
+                                }
+                                this.position += 1
+                            }
+                            break
+                        }
+
+                        if (this.token[this.position].type == TT_IDENTIFIER) {
+                            let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
+                            console.log(existingVar)
+                            console.log(this.variableCheck)
+
+                            if (existingVar) {
+                                if (existingVar["value"] == "DILI") {
+                                    holdString += " 0 "
+                                }
+                                else if (existingVar["value"] == "OO") {
+                                    holdString += " 1 "
+                                }
+                                else {
+                                    holdString += existingVar["value"]
+                                }
+
+                            }
+                            else {
+                                throw new Error("ERROR: variable does not exist");
+                            }
+                            this.position += 1
+                        }
+                        else {
+                            if (this.token[this.position].value == '"OO"') {
+                                console.log("OO run")
+                                holdString += " 1 "
+                            }
+                            else if (this.token[this.position].value == '"DILI"') {
+                                holdString += " 0 "
+                            }
+                            else if (this.token[this.position].value == "DILI") {
+                                holdString += " DILI "
+                            }
+                            else if (this.token[this.position].value == "UG") {
+                                holdString += " UG "
+                            }
+                            else if (this.token[this.position].value == "O") {
+                                holdString += " O "
+                            }
+                            else {
+                                holdString += this.token[this.position].value
+                            }
+                            this.position += 1
+                        }
+                        console.log(holdString)
+
+
+                    }
+
+                }
+                else {
+                    throw new Error("ERROR: Missing (");
+                }
+
+                this.position += 1
+            } catch (e) {
+                console.log("Error occurred:", e.message);
+            }
+        }
+    }
 }
 
 
@@ -1167,7 +1382,7 @@ class Interpreter {
                                 this.memory[existingVarIndex].value = formatNumber(nodeassign["value"] + "")
                             }
                             else if (existingVar["datatype"] == TT_TINUOD) {
-                                this.memory[existingVarIndex].value = nodeassign["value"]+""
+                                this.memory[existingVarIndex].value = nodeassign["value"] + ""
                             }
                             else {
                                 throw new Error("ERROR: Not valid value for type");

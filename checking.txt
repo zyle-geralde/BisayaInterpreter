@@ -1,8 +1,6 @@
 
 SUGOD
-KUNG PUNDOK
-KUNG WALA { } KUNG 
-DILI
+
 MUGNA LETRA aa,bb = 'j',cc = bb
 MUGNA NUMERO x = -28
 MUGNA LETRA a,b = 'e',c = a
