@@ -5,6 +5,7 @@ KUNG ("OO" UG "DILI")PUNDOK {
     KUNG("OO" UG "OO")PUNDOK{
 
     }
+    MUGNA NUMERO jj = 45
 } KUNG DILI ("OO" UG "DILI") PUNDOK {
 
 }

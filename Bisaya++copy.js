@@ -1201,6 +1201,14 @@ class Parser {
                         }
                         else if (this.token[this.position].type == TT_KUNG) {
                             this.ifStatement()
+                            console.log("GOGO "+this.token[this.position].value)
+                            this.position-=2
+                        }
+                        else if (this.token[this.position].type == TT_VAR_DEC) {
+                            console.log("GO TEam")
+                            this.variabelDeclaration()
+                            this.position-=1
+                            
                         }
                         else {
 
