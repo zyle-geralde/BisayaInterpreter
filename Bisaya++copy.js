@@ -1199,6 +1199,9 @@ class Parser {
                             }
                             break
                         }
+                        else if (this.token[this.position].type == TT_KUNG) {
+                            this.ifStatement()
+                        }
                         else {
 
                         }

@@ -2,7 +2,9 @@
 SUGOD
 
 KUNG ("OO" UG "DILI")PUNDOK {
+    KUNG("OO" UG "OO")PUNDOK{
 
+    }
 } KUNG DILI ("OO" UG "DILI") PUNDOK {
 
 }
@@ -17,6 +19,8 @@ KUNG ("DILI" UG "OO")PUNDOK {
 KUNG WALA PUNDOK {
 
 }
+
+
 
 IPAKITA: ll
 
