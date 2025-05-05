@@ -45,6 +45,12 @@ TT_NOTEQUAL = "NotEqual"
 TT_AND = "UG"
 TT_OR = "O"
 TT_NOT = "DILI"
+TT_KUNG = "KUNG"
+TT_DILI = "KDILI"
+TT_WALA = "KWALA"
+TT_PUNDOK = "PUNDOK"
+TT_LEFT_BRAC = "LEFT BRAC"
+TT_RIGHT_BRAC = "RIGHT BRAC"
 
 
 let keywords = [TT_SUGOD, TT_KATAPUSAN]
@@ -174,6 +180,16 @@ class Lexer {
                 tokens.push(newtoken)
                 this.indx += 1
             }
+            else if (this.text[this.indx] == "{") {
+                let newtoken = new Token(this.text[this.indx], TT_LEFT_BRAC)
+                tokens.push(newtoken)
+                this.indx += 1
+            }
+            else if (this.text[this.indx] == "}") {
+                let newtoken = new Token(this.text[this.indx], TT_RIGHT_BRAC)
+                tokens.push(newtoken)
+                this.indx += 1
+            }
             else if (this.text[this.indx] == "<") {
                 if (this.indx + 1 < this.text.length) {
                     if (this.text[this.indx + 1] == "=") {
@@ -257,7 +273,32 @@ class Lexer {
                     tokens.push(newtoken)
                 }
                 else if (value == TT_NOT) {
-                    let newtoken = new Token(value, TT_NOT)
+                    if (tokens[tokens.length - 1].value == TT_KUNG) {
+                        let newtoken = new Token(value, TT_DILI)
+                        tokens.push(newtoken)
+                    }
+                    else {
+                        let newtoken = new Token(value, TT_NOT)
+                        tokens.push(newtoken)
+                    }
+                    
+                }
+                else if (value == TT_KUNG) {
+                    let newtoken = new Token(value, TT_KUNG)
+                    tokens.push(newtoken)
+                }
+                else if (value == "WALA") {
+                    if (tokens[tokens.length - 1].value == TT_KUNG) {
+                        let newtoken = new Token(value, TT_WALA)
+                        tokens.push(newtoken)
+                    }
+                    else {
+                        let newtoken = new Token(value, TT_IDENTIFIER)
+                        tokens.push(newtoken)
+                    }
+                }
+                else if (value == TT_PUNDOK) {
+                    let newtoken = new Token(value, TT_PUNDOK)
                     tokens.push(newtoken)
                 }
                 else if (!isNaN(value) || value.trim() === "") {

@@ -1,6 +1,6 @@
 TO DO:
 modulo operator
-If else
+If else(Implemented Lexer)
 for loop
 escape sequence - []
 
