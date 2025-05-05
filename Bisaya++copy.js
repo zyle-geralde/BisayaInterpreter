@@ -1224,37 +1224,37 @@ class Interpreter {
     }
 
     executePrintFunction(nodes) {
-        let output = "";
+        this.executeString = ""
         for (let expr of nodes["expression"]) {
-            switch (expr.type) {
-                case "Value": // Literal values
-                    output += expr.name;
-                    break;
-                    
-                case "Variable": // Variables
-                    const varData = this.memory.find(v => v.name === expr.name);
-                    if (!varData) throw new Error(`Variable ${expr.name} not found`);
-                    output += varData.value.replace(/['"]/g, ''); // Remove quotes
-                    break;
-                    
-                case "String": // String literals
-                    output += expr.name.replace(/['"]/g, ''); // Remove quotes
-                    break;
-                    
-                case "Escape": // [X] sequences
-                    output += expr.name; // Just add the character directly
-                    break;
-                    
-                case TT_NEXTLINE: // $ symbol
-                    output += "\n";
-                    break;
-                    
-                // TT_CONCAT (&) is handled implicitly by the loop
+            if (expr["type"] == "Value") {
+                this.executeString += expr["name"]
+            }
+            else if (expr["type"] == "Variable") {
+                let existingVarExpr = this.memory.find(variable => variable["name"] === expr["name"]);
+                if (existingVarExpr) {
+                    if (existingVarExpr["value"] != null) {
+                        this.executeString += existingVarExpr["value"]
+                    }
+                }
+                else {
+                    throw new Error("ERROR: Variable not found");
+                }
+            }
+            else if (expr["type"] == "String") {
+                this.executeString += expr["name"]
+            }
+            else if (expr["type"] == "NEXTLINE") {
+                this.executeString += "\n"
+            }
+            else if (expr["type"] == "Escape") {
+                this.executeString += expr["name"]
+
             }
         }
-        return output;
+
+        return this.executeString
     }
-    
+
     executeInputFunction(nodes) {
         let values = [];
         let goodList = [];

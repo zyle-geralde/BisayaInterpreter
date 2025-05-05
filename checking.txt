@@ -1,8 +1,37 @@
 SUGOD
-    MUGNA NUMERO xyz, abc=100
-    xyz= ((abc *5)/10 + 10) * -1
-    IPAKITA: [x] & "XOR" & [r]
-KATAPUSAN
+-- KUNG PUNDOK
+-- KUNG WALA { } KUNG 
+-- DILI
+MUGNA LETRA aa,bb = 'j',cc = bb
+MUGNA NUMERO x = -28
+MUGNA LETRA a,b = 'e',c = a
+MUGNA NUMERO p = 56 - 45 + x, t = p + x - p
 
+MUGNA TIPIK jj = 9 + 34.6 --jj
+p = x = 45 *2 - p
+
+MUGNA TINUOD ja = "DILI", je = DILI"OO" , jc = "OO"
+MUGNA TINUOD kk = (DILI ja O "DILI") O jc 
+ja = jc UG "OO"
+ja = "DILI"
+--jc = (DILI ja O "DILI") O jc
+MUGNA TINUOD jk = "OO"
+--DAWATA: jk
+
+IPAKITA: "MATA"  & jc & $ 
+
+jc= "OO" UG ja
+
+jk = ja = jk
+ja = jk
+
+IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
+IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
+
+IPAKITA: ja & ' ' & je & ' ' & jc &$ 
+IPAKITA: kk & $ & jk & $
+
+IPAKITA: "mas gamay sa 0"
+KATAPUSAN
     
 
