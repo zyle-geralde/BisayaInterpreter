@@ -40,6 +40,7 @@ const PLUS = "PLUS"
 const MINUS = "MINUS"
 const MUL = "MUL"
 const DIV = "DIV"
+const MOD = "MOD"; 
 const LPAREN = "LPAREN"
 const RPAREN = "RPAREN"
 TT_EOF = "EOF"
@@ -225,6 +226,10 @@ class Lexer {
                 tokens.push(new Token(DIV, this.pos.copy()))
                 this.advance()
             }
+            else if (this.current_char === "%") { 
+                tokens.push(new Token(MOD, this.pos.copy()))
+                this.advance()
+            }
             else if (this.current_char === "(") {
                 tokens.push(new Token(LPAREN, this.pos.copy()))
                 this.advance()
@@ -244,7 +249,14 @@ class Lexer {
                 tokens.push(token);
             }*/
             else if (this.current_char === "=") {
-                tokens.push(this.make_equals())
+                // Check if this is a comparison (==) or assignment (=)
+                if (this.text[this.pos.idx + 1] === '=') {
+                    tokens.push(this.make_equals());  // Existing EE token
+                } else {
+                    tokens.push(new Token('ASSIGN', this.pos.copy()));
+                    this.advance();
+                }
+                // tokens.push(this.make_equals())
             }
             else if (this.current_char === "<") {
                 tokens.push(this.make_less_than())
@@ -301,10 +313,12 @@ class Lexer {
             this.advance();
         }
         
+        // Only treat as keyword if it matches exactly
         let tok_type = KEYWORDS.includes(id_str) ? TT_KEYWORD : TT_IDENTIFIER;
-        return new Token(tok_type, id_str, pos_start, this.pos);
 
+        return new Token(tok_type, id_str, pos_start, this.pos);
     }
+
     make_equals() {
         let tok_Type = TT_EQ
         let posStart = this.pos.copy()
@@ -442,43 +456,41 @@ class Parser {
         return res
     }
     factor() {
-        let res = new ParseResult()
-        let tok = this.current_tok
+    let res = new ParseResult()
+    let tok = this.current_tok
 
-        if ([PLUS, MINUS].includes(tok.type)) {
-            res.register(this.advance())
-            let factor = res.register(this.factor())
-            if (res.error) return res
-            return res.success(new UnaryOpNode(tok, factor))
-
-        }
-        else if ([TIPIK, NUMERO].includes(tok.type)) {
-            res.register(this.advance())
-            return res.success(new NumberNode(tok))
-        }
-        else if (tok.type == LPAREN) {
-            res.register(this.advance())
-            let expr = res.register(this.expr())
-            
-            if (res.error) return res
-            if (this.current_tok.type == RPAREN) {
-                res.register(this.advance())
-                return res.success(expr)
-            }
-            else {
-                
-                return res.failure(new IllegalSyntaxError(
-                    this.current_tok.pos_start, this.current_tok.pos_end,
-                    "Expected ')'"
-                ))
-            }
-        }
-
-        return res.failure(new IllegalSyntaxError(tok.pos_start, tok.pos_end, "Expected int or float"))
+    if ([PLUS, MINUS].includes(tok.type)) {
+        res.register(this.advance())
+        let factor = res.register(this.factor())
+        if (res.error) return res
+        return res.success(new UnaryOpNode(tok, factor))
 
     }
+    else if ([TIPIK, NUMERO].includes(tok.type)) {
+        res.register(this.advance())
+        return res.success(new NumberNode(tok))
+    }
+    else if (tok.type == LPAREN) {
+        res.register(this.advance())
+        let expr = res.register(this.expr())
+        
+        if (res.error) return res
+        if (this.current_tok.type == RPAREN) {
+            res.register(this.advance())
+            return res.success(expr)
+        }
+        else {
+            
+            return res.failure(new IllegalSyntaxError(
+                this.current_tok.pos_start, this.current_tok.pos_end,
+                "Expected ')'"
+            ))
+        }
+    }
+        return res.failure(new IllegalSyntaxError(tok.pos_start, tok.pos_end, "Expected int or float"))
+    }
     term() {
-        return this.bin_op(() => this.factor(), [MUL, DIV])
+        return this.bin_op(() => this.factor(), [MUL, DIV, MOD])
     }
     arith_expr() {
         return this.bin_op(() => this.term(), [TT_PLUS, TT_MINUS]);
@@ -656,6 +668,15 @@ class Number {
         }
         return null
     }
+    modded_by(other) {
+        if (other instanceof Number) {
+            if (other.value == 0) {
+                return [null, new RTError(other.pos_start, other.pos_end, "Modulo by zero", this.context)]
+            }
+            return [new Number(this.value % other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
+        }
+        return [null, new RTError(this.pos_start, this.pos_end, "Invalid operand for modulo", this.context)]
+    }
     get_comparison_eq(other) {
         if (other instanceof Number) {
             return {
@@ -792,7 +813,7 @@ class Interpreter {
 
     visit_NumberNode(node, context) {
         return new RTResult().success(new Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end))
-        //console.log("Found number node!")
+         //console.log("Found number node!")
     }
     visit_BinOpNode(node, context) {
         let res = new RTResult()
@@ -818,6 +839,9 @@ class Interpreter {
         }
         else if (node.op_tok.type == DIV) {
             [result, error] = left.divided_by(right)
+        }
+        else if (node.op_tok.type == MOD) {  
+            [result, error] = left.modded_by(right)
         }
         else if (node.op_tok.type === TT_EE) {
             ({ result, error } = left.get_comparison_eq(right));

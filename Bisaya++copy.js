@@ -45,6 +45,7 @@ TT_NOTEQUAL = "NotEqual"
 TT_AND = "UG"
 TT_OR = "O"
 TT_NOT = "DILI"
+TT_ESCAPE = "Escape"
 
 
 let keywords = [TT_SUGOD, TT_KATAPUSAN]
@@ -334,6 +335,26 @@ class Lexer {
                     let newtoken = new Token(value, "Invalid Syntax")
                     tokens.push(newtoken)
                 }
+            }
+            else if (this.text[this.indx] === "[") {
+                const start = this.indx;
+                this.indx++; // move past '['
+                
+                if (this.indx >= this.text.length) {
+                    throw new Error("Invalid escape sequence: reached end after '['");
+                }
+                
+                let char = this.text[this.indx]; // the character inside brackets
+                this.indx++; // move past character
+                
+                if (this.indx >= this.text.length || this.text[this.indx] !== "]") {
+                    throw new Error(`Invalid escape sequence: missing closing ']' after position ${start}`);
+                }
+                
+                this.indx++; // move past ']'
+                
+                // Create token with the character inside brackets as value
+                tokens.push(new Token(`[${char}]`, TT_ESCAPE));
             }
             else {
                 let newtoken = new Token(this.text[this.indx], "Not defined yet")
@@ -752,7 +773,9 @@ class Parser {
 
                             if (this.token[copypos].type == TT_NEWLINE) {
                                 let neweval = ""
+                                console.log(evalString)
                                 if (evalString == '"OO"' || evalString == '"DILI"') {
+                                    console.log(evalString)
                                     holdvalue = evalString[0]
                                     break
                                 }
@@ -791,7 +814,12 @@ class Parser {
                                 console.log(this.variableCheck)
 
                                 if (existingVar) {
-                                    if (existingVar["value"] == "DILI") {
+                                    console.log("CCg"+evalString)
+                                    if ((existingVar["value"] == "OO" || existingVar["value"] == "DILI") && (this.token[copypos + 1].type == TT_NEWLINE || this.token[copypos + 1].type == TT_ASSIGN) && evalString == "") {
+                                        
+                                        evalString += existingVar["value"]
+                                    }
+                                    else if (existingVar["value"] == "DILI") {
                                         evalString += " 0 "
                                     }
                                     else if (existingVar["value"] == "OO") {
@@ -808,7 +836,7 @@ class Parser {
                                 copypos += 1
                             }
                             else {
-                                if ((this.token[copypos].value == '"OO"' || this.token[copypos].value == '"DILI"') && this.token[copypos + 1].type == TT_NEWLINE) {
+                                if ((this.token[copypos].value == '"OO"' || this.token[copypos].value == '"DILI"') && this.token[copypos + 1].type == TT_NEWLINE && evalString == "") {
                                     
                                     evalString += this.token[copypos].value
                                 }
@@ -922,8 +950,19 @@ class Parser {
             }
             this.position += 1
             if (this.position < this.token.length) {
-                if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE) {
-                    let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : "Unknown"), "name": this.token[this.position].value }
+                if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || 
+                this.token[this.position].type == TT_STRING || 
+                this.token[this.position].type == TT_NEXTLINE ||
+                this.token[this.position].type == TT_ESCAPE) {
+                    let printElem = { 
+                        "type": (this.token[this.position].type == TT_IDENTIFIER ? 
+                            "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : 
+                            this.token[this.position].type == TT_STRING ? "String" : 
+                            this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : 
+                            this.token[this.position].type == TT_ESCAPE ? "Escape" : 
+                            "Unknown"),  
+                        "name": this.token[this.position].value 
+                    }
                     printJSON["expression"].push(printElem)
                 }
                 else {
@@ -960,11 +999,22 @@ class Parser {
                     }
                 }
                 else {
-                    if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE) {
-                        let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : "Unknown"), "name": this.token[this.position].value }
-                        printJSON["expression"].push(printElem)
-                        this.position += 1
-                        beforeToken = "indetifier"
+                    if (this.token[this.position].type == TT_IDENTIFIER || 
+                        dtype.includes(this.token[this.position].type) || 
+                        this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE ||
+                        this.token[this.position].type == TT_ESCAPE) {
+                        let printElem = {
+                            "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : 
+                                dtype.includes(this.token[this.position].type) ? "Value" : 
+                                this.token[this.position].type == TT_STRING ? "String" : 
+                                this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : 
+                                this.token[this.position].type == TT_ESCAPE ? "Escape" : 
+                                "Unknown"), 
+                            "name": 
+                                this.token[this.position].value }
+                            printJSON["expression"].push(printElem)
+                            this.position += 1
+                            beforeToken = "indetifier"
                     }
                     else {
                         throw new Error("Invalid format");
@@ -1184,7 +1234,7 @@ class Interpreter {
                 let existingVarExpr = this.memory.find(variable => variable["name"] === expr["name"]);
                 if (existingVarExpr) {
                     if (existingVarExpr["value"] != null) {
-                        this.executeString += existingVarExpr["value"]
+                        this.executeString += existingVarExpr["value"].replace(/['"]/g, '');
                     }
                 }
                 else {
@@ -1192,10 +1242,18 @@ class Interpreter {
                 }
             }
             else if (expr["type"] == "String") {
-                this.executeString += expr["name"]
+                this.executeString += expr["name"].replace(/['"]/g, '');
             }
             else if (expr["type"] == "NEXTLINE") {
                 this.executeString += "\n"
+            }else if (expr["type"] == TT_ESCAPE) {
+                // Handle escape sequences - extract the character between []
+                let char = expr["name"].match(/\[(.)\]/)[1];
+                if (char === '$') {
+                    this.executeString += "\n";
+                } else {
+                    this.executeString += char;
+                }
             }
             else {
 
@@ -1266,7 +1324,3 @@ class Interpreter {
 
     }
 }
-
-
-
-
