@@ -1,6 +1,5 @@
 TO DO:
 for loop
-escape sequence - []
 
 
 fix later:
@@ -18,6 +17,7 @@ DAWATA
 arithmetic
 Logical expressions and comparison operator
 modulo operator
+escape sequence - []
 If else(Implemented Lexer)
 
 
