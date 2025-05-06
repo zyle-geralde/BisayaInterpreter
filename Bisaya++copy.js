@@ -54,6 +54,8 @@ TT_LEFT_BRAC = "LEFT BRAC"
 TT_RIGHT_BRAC = "RIGHT BRAC"
 TT_GLOBAL_EXECUTE = false
 TT_MODULO = "MODULO"
+TT_OPEN_BRAK = "OPEN BRAK"
+TT_CLOSE_BRAK = "CLOSE BRAK"
 
 
 let keywords = [TT_SUGOD, TT_KATAPUSAN]
@@ -195,6 +197,16 @@ class Lexer {
             }
             else if (this.text[this.indx] == "}") {
                 let newtoken = new Token(this.text[this.indx], TT_RIGHT_BRAC)
+                tokens.push(newtoken)
+                this.indx += 1
+            }
+            else if (this.text[this.indx] == "[") {
+                let newtoken = new Token(this.text[this.indx], TT_OPEN_BRAK)
+                tokens.push(newtoken)
+                this.indx += 1
+            }
+            else if (this.text[this.indx] == "]") {
+                let newtoken = new Token(this.text[this.indx], TT_CLOSE_BRAK)
                 tokens.push(newtoken)
                 this.indx += 1
             }
@@ -979,6 +991,19 @@ class Parser {
                     let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : "Unknown"), "name": this.token[this.position].value }
                     printJSON["expression"].push(printElem)
                 }
+                else if (this.token[this.position].type == TT_OPEN_BRAK) {
+                    if (this.position + 2 >= this.token.length) {
+                        throw new Error("ERROR: Invalid closing Brackets");
+                    }
+                    if (this.token[this.position + 2].type == TT_CLOSE_BRAK) {
+                        let printElem = { "type": "String", "name": this.token[this.position+1].value+"" }
+                        printJSON["expression"].push(printElem)
+                        this.position += 2
+                    }
+                    else {
+                        throw new Error("ERROR: Should have opening Brackets");
+                    }
+                }
                 else {
                     throw new Error("Invalid format");
                 }
@@ -1018,6 +1043,20 @@ class Parser {
                         printJSON["expression"].push(printElem)
                         this.position += 1
                         beforeToken = "indetifier"
+                    }
+                    else if (this.token[this.position].type == TT_OPEN_BRAK) {
+                        if (this.position + 2 >= this.token.length) {
+                            throw new Error("ERROR: Invalid closing Brackets");
+                        }
+                        if (this.token[this.position + 2].type == TT_CLOSE_BRAK) {
+                            let printElem = { "type": "String", "name": this.token[this.position+1].value+"" }
+                            printJSON["expression"].push(printElem)
+                            this.position += 3
+                            beforeToken = "indetifier"
+                        }
+                        else {
+                            throw new Error("ERROR: Should have opening Brackets");
+                        }
                     }
                     else {
                         throw new Error("Invalid format");

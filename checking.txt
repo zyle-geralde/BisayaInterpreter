@@ -30,7 +30,7 @@ IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
 IPAKITA: ja & ' ' & je & ' ' & jc &$ 
 IPAKITA: kk & $ & jk & $
 
-IPAKITA: "mas gamay sa 0"
+IPAKITA:  x & jk & jc & $ & ja & [#] & "last"
 KATAPUSAN
  
 
