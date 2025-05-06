@@ -3,10 +3,11 @@ const readlineSync = require("readline-sync");
 
 const { run } = require('./Bisaya++');
 
-fs.readFile('checking2.txt', 'utf8', (err, data) => {
+fs.readFile('checking.txt', 'utf8', (err, data) => {
     if (err) { console.error('Error reading file:', err); return; }
     let interpreter = new Lexer(data)
     let get_tokens = interpreter.make_tokens()
+    console.log(get_tokens)
     let parser = new Parser(get_tokens)
     let astTree = parser.parse()
     let executer = new Interpreter(astTree)
@@ -52,6 +53,7 @@ TT_PUNDOK = "PUNDOK"
 TT_LEFT_BRAC = "LEFT BRAC"
 TT_RIGHT_BRAC = "RIGHT BRAC"
 TT_GLOBAL_EXECUTE = false
+TT_MODULO = "MODULO"
 
 
 let keywords = [TT_SUGOD, TT_KATAPUSAN]
@@ -165,6 +167,11 @@ class Lexer {
                     tokens.push(newtoken)
                     this.indx += 1
                 }
+            }
+            else if (this.text[this.indx] == "%") {
+                let newtoken = new Token(this.text[this.indx], TT_MODULO)
+                tokens.push(newtoken)
+                this.indx += 1
             }
             else if (this.text[this.indx] == "&") {
                 let newtoken = new Token(this.text[this.indx], TT_CONCAT)
