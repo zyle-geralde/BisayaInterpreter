@@ -51,6 +51,7 @@ TT_KUNGWALA = "KUNG WALA"
 TT_PUNDOK = "PUNDOK"
 TT_LEFT_BRAC = "LEFT BRAC"
 TT_RIGHT_BRAC = "RIGHT BRAC"
+TT_GLOBAL_EXECUTE = false
 
 
 let keywords = [TT_SUGOD, TT_KATAPUSAN]
@@ -119,7 +120,7 @@ class Lexer {
                                 this.indx += 1
                                 let newtoken = new Token("\n", TT_NEWLINE)
                                 tokens.push(newtoken)
-                                console.log("Good slach n")
+                                
                                 break
                             }
                             this.indx += 1
@@ -382,7 +383,7 @@ class Lexer {
                 this.indx += 1
             }
         }
-        console.log(tokens)
+        
         return tokens
     }
 }
@@ -392,9 +393,9 @@ class Parser {
         this.token = token
         this.position = 0
         this.variableCheck = []
+        this.ast = { type: "Program", body: [] }
     }
     parse() {
-        let ast = { type: "Program", body: [] }
 
         if (this.token.length == 0) {
 
@@ -410,7 +411,7 @@ class Parser {
             this.position += 1
             while (this.position < this.token.length) {
                 if (this.token[this.position].type == TT_NEWLINE) {
-                    console.log("ignore")
+                    
                     this.position += 1
                 }
 
@@ -419,15 +420,15 @@ class Parser {
                 }
                 else if (this.token[this.position].type == TT_VAR_DEC) {
                     let vardecJson = this.variabelDeclaration()
-                    ast.body.push(vardecJson)
+                    this.ast.body.push(vardecJson)
                 }
                 else if (this.token[this.position].type == TT_IDENTIFIER) {
                     let vardecJson = this.variableAssignement()
-                    ast.body.push(vardecJson)
+                    this.ast.body.push(vardecJson)
                 }
                 else if (this.token[this.position].type == TT_PRINT) {
                     let vardecJson = this.printFunction()
-                    ast.body.push(vardecJson)
+                    this.ast.body.push(vardecJson)
                 }
                 else if (this.token[this.position].type == TT_KUNG) {
                     this.ifStatement()
@@ -442,7 +443,7 @@ class Parser {
                 }
                 else if (this.token[this.position].type == TT_DAWATA) {
                     let handleDAWAT = this.inputFunction()
-                    ast.body.push(handleDAWAT)
+                    this.ast.body.push(handleDAWAT)
                     //Implement HERE
                 }
                 else {
@@ -454,7 +455,7 @@ class Parser {
         else {
             throw new Error("ERROR: SUGOD missing");
         }
-        return ast
+        return this.ast
     }
     variabelDeclaration() {
         let vardec = { "type": null, "dataType": null, "variables": [] }
@@ -480,13 +481,13 @@ class Parser {
         }
 
         while (this.position < this.token.length) {
-            console.log(vardec)
+            
             if (this.token[this.position].type == TT_NEWLINE) {
                 this.position += 1
                 break
             }
             if (this.token[this.position].type == TT_COMMA) {
-                console.log("run multicomma if")
+                
                 this.position += 1
                 if (this.token[this.position].type == TT_COMMA) {
                     throw new Error("ERROR: Multiple comma");
@@ -527,9 +528,7 @@ class Parser {
 
                                         vardec.variables.push(identifier_hold)
 
-                                        console.log("Variable Check")
-                                        console.log(this.variableCheck)
-                                        console.log("HoldString: " + holdString)
+                                        
                                     }
                                     else {
                                         let [output, error] = run("<stdin>", holdString);
@@ -572,8 +571,7 @@ class Parser {
 
                                             vardec.variables.push(identifier_hold)
 
-                                            console.log("Variable Check")
-                                            console.log(this.variableCheck)
+                                            
                                         }
 
 
@@ -583,8 +581,7 @@ class Parser {
 
                                 if (this.token[this.position].type == TT_IDENTIFIER) {
                                     let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
-                                    console.log(existingVar)
-                                    console.log(this.variableCheck)
+                                    
 
                                     if (existingVar) {
                                         if (existingVar["value"] == "DILI") {
@@ -605,7 +602,7 @@ class Parser {
                                 }
                                 else {
                                     if (this.token[this.position].value == '"OO"') {
-                                        console.log("OO run")
+                                        
                                         holdString += " 1 "
                                     }
                                     else if (this.token[this.position].value == '"DILI"') {
@@ -625,7 +622,7 @@ class Parser {
                                     }
                                     this.position += 1
                                 }
-                                console.log(holdString)
+                                
 
 
                             }
@@ -676,8 +673,7 @@ class Parser {
                         }
                         else if (this.token[this.position].type == TT_IDENTIFIER) {
                             let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
-                            console.log(existingVar)
-                            console.log(this.variableCheck)
+                            
 
                             if (existingVar) {
                                 if (existingVar["datatype"] == vardec["dataType"]) {
@@ -790,15 +786,15 @@ class Parser {
                             }
 
                             if (this.token[copypos].value == "=") {
-                                console.log("Invalid Equal sign")
+                                
                                 break;
                             }
 
                             if (this.token[copypos].type == TT_NEWLINE) {
                                 let neweval = ""
-                                console.log(evalString)
+                                
                                 if (evalString == '"OO"' || evalString == '"DILI"') {
-                                    console.log(evalString)
+                                    
                                     holdvalue = evalString[0]
                                     break
                                 }
@@ -806,7 +802,7 @@ class Parser {
                                     let [output, error] = run("<stdin>", evalString);
 
                                     if (error) {
-                                        console.log("Invalid Expression")
+                                        
                                         break
                                     } else {
                                         if (output.isBool == true) {
@@ -822,7 +818,7 @@ class Parser {
 
                                         this.position = copypos
 
-                                        console.log(holdvalue)
+                                        
 
                                         skip = true
 
@@ -833,11 +829,10 @@ class Parser {
 
                             if (this.token[copypos].type == TT_IDENTIFIER) {
                                 let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[copypos].value);
-                                console.log(existingVar)
-                                console.log(this.variableCheck)
+                                
 
                                 if (existingVar) {
-                                    console.log("CCg" + evalString)
+                                    
                                     if ((existingVar["value"] == "OO" || existingVar["value"] == "DILI") && (this.token[copypos + 1].type == TT_NEWLINE || this.token[copypos + 1].type == TT_ASSIGN) && evalString == "") {
 
                                         evalString += existingVar["value"]
@@ -864,7 +859,7 @@ class Parser {
                                     evalString += this.token[copypos].value
                                 }
                                 else if (this.token[copypos].value == '"OO"') {
-                                    console.log("OO run")
+                                    
                                     evalString += " 1 "
                                 }
                                 else if (this.token[copypos].value == '"DILI"') {
@@ -959,7 +954,7 @@ class Parser {
             throw new Error("ERROR: Missing KATAPUSAN");
         }
 
-        console.log(assignmentJSON)
+        
         return assignmentJSON
     }
 
@@ -1028,12 +1023,12 @@ class Parser {
             throw new Error("ERROR: KATAPUSAN missing");
         }
 
-        console.log(printJSON)
+        
         return printJSON
     }
 
     inputFunction() {
-        console.log("Input here implement")
+        
 
         //Implement here
         let inputJson = { "type": "InputFunction", "varlist": [] }
@@ -1095,7 +1090,7 @@ class Parser {
             }
         }
 
-        console.log("\n\n\n\n\n\n ------INPUT FUNCTION PARSER-----\n", inputJson, "\n\n--------END------")
+        
         return inputJson
     }
 
@@ -1153,23 +1148,26 @@ class Parser {
                 }
 
                 if (this.token[this.position].type == TT_LEFT_BRAC) {
+                    console.log(ifIndic+" "+ifStay + " " + execute)
+
                     while (true) {
+                        console.log(execute)
                         if (this.position >= this.token.length) {
                             throw new Error("ERROR: Missing Katapusan");
                         }
+
                         if (this.token[this.position].type == TT_RIGHT_BRAC) {
-                            
-                            if (ifStay == true && execute == false) {
-                                console.log("Executed " + `${ifIndic}th ` + "If")
+                            if (ifStay == true) {
                                 execute = true
                             }
+                            
                             isPundok = false
                             isKungExecuted = true
 
                             this.position += 1
                             //remove newlines
                             while (true) {
-                                console.log("Y "+this.token[this.position].value)
+                                
                                 if (this.position >= this.token.length) {
                                     throw new Error("ERROR: Missing Katapusan");
                                 }
@@ -1178,17 +1176,24 @@ class Parser {
                                 }
                                 else if (this.token[this.position].type == TT_KUNGDILI || this.token[this.position].type == TT_KUNGWALA) {
                                     //this.position+=1
+                                    
                                     this.position -= 1
+                                    
 
                                     break
                                 }
                                 else {
                                     if (isKungWalaExecuted == true) {
+                                        console.log("INSIDE: isKUNG " + this.token[this.position].type)
                                         this.position -= 1
+                                        console.log("INSIDE: isKUNG "+this.token[this.position].type)
                                         return
+                                        
                                     }
                                     if (isKungExecuted == true) {
+                                        console.log("INSIDE: isKUNG " + this.token[this.position].type)
                                         this.position -= 1
+                                        console.log("INSIDE: isKUNG "+this.token[this.position].type)
                                         break
                                     } 
                                     else {
@@ -1202,13 +1207,50 @@ class Parser {
                         else if (this.token[this.position].type == TT_KUNG) {
                             this.ifStatement()
                             console.log("GOGO "+this.token[this.position].value)
-                            this.position-=2
-                        }
-                        else if (this.token[this.position].type == TT_VAR_DEC) {
-                            console.log("GO TEam")
-                            this.variabelDeclaration()
                             this.position-=1
-                            
+                        }
+                        /*else if (TT_GLOBAL_EXECUTE == true) {
+
+                        }
+                        else if (execute === true) {
+
+                            console.log("Run exec")
+                        }*/
+                        else if (this.token[this.position].type == TT_VAR_DEC ) {
+                            console.log("GO TEam")
+                            let vardecJson = this.variabelDeclaration()
+                            console.log("CHECK OT " + this.token[this.position].type)
+                            console.log("CHECK OT " + this.token[this.position - 1].type)
+                            console.log("CHECK OT "+this.token[this.position-2].type)
+                            this.ast.body.push(vardecJson)
+                            this.position-=1
+                        }
+                        else if (this.token[this.position].type ==TT_IDENTIFIER) {
+                            console.log("GO NOT")
+                            let vardecJson = this.variableAssignement()
+                            console.log("CHECK IT " + this.token[this.position].type)
+                            console.log("CHECK IT " + this.token[this.position - 1].type)
+                            console.log("CHECK IT "+this.token[this.position-2].type)
+                            this.ast.body.push(vardecJson)
+                            this.position-=1
+                        }
+                        else if (this.token[this.position].type ==TT_PRINT && ifStay == true && execute == false) {
+                            console.log("PRINT"+execute)
+                            let vardecJson = this.printFunction()
+                            console.log("CHECK PRINT " + this.token[this.position].type)
+                            console.log("CHECK PRINT " + this.token[this.position - 1].type)
+                            console.log("CHECK PRINT "+this.token[this.position-2].type)
+                            this.ast.body.push(vardecJson)
+                            this.position-=1
+                        }
+                        else if (this.token[this.position].type ==TT_DAWATA) {
+                            console.log("GO INPUT")
+                            let vardecJson = this.inputFunction()
+                            console.log("CHECK INPUT " + this.token[this.position].type)
+                            console.log("CHECK INPUT " + this.token[this.position - 1].type)
+                            console.log("CHECK INPUT "+this.token[this.position-2].type)
+                            this.ast.body.push(vardecJson)
+                            this.position-=1
                         }
                         else {
 
@@ -1393,7 +1435,13 @@ class Parser {
             }
             else {
                 if (isKungExecuted == true) {
+                    TT_GLOBAL_EXECUTE = false
                     console.log(this.token[this.position].value)
+                    break
+                }
+                else if (isKungWalaExecuted == true) {
+                    TT_GLOBAL_EXECUTE = false
+                    console.log("YEHEY"+ this.token[this.position].value)
                     this.position += 1
                     break
                 }
@@ -1401,7 +1449,7 @@ class Parser {
             }
 
             this.position += 1
-            console.log("HELLO"+this.token[this.position].value)
+            
         }
     }
 }
@@ -1456,12 +1504,11 @@ class Interpreter {
             }
         }
 
-        console.log(this.memory)
+        
     }
     executeVariableAssignment(nodes) {
         for (let nodeassign of nodes["assignments"]) {
-            console.log(nodeassign)
-            console.log(this.memory)
+            
             let existingVar = this.memory.find(variable => variable["name"] === nodeassign["variable"]);
 
             if (existingVar) {
@@ -1528,7 +1575,7 @@ class Interpreter {
                 throw new Error("ERROR: Variable not found");
             }
         }
-        console.log(this.memory)
+        
     }
 
     executePrintFunction(nodes) {
@@ -1619,7 +1666,7 @@ class Interpreter {
             }
         }
 
-        console.log(this.memory)
+        
 
     }
 }

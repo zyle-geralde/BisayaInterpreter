@@ -1,29 +1,25 @@
 
 SUGOD
+MUGNA NUMERO ja = 46
+MUGNA NUMERO jj = 45
 
-KUNG ("OO" UG "DILI")PUNDOK {
-    KUNG("OO" UG "OO")PUNDOK{
+MUGNA NUMERO jb = 47
+MUGNA NUMERO jc = 48
 
-    }
-    MUGNA NUMERO jj = 45
-} KUNG DILI ("OO" UG "DILI") PUNDOK {
-
-}
-KUNG WALA PUNDOK {
+KUNG ("OO" UG "OO")PUNDOK {
+    IPAKITA: ja
 
 }
-MUGNA LETRA ll = 'a'
-KUNG ("DILI" UG "OO")PUNDOK {
+KUNG DILI ("OO" UG "DILI") PUNDOK {
+    IPAKITA: jj
 
-} 
-
-KUNG WALA PUNDOK {
+}
+KUNG DILI ("OO" UG "OO") PUNDOK {
+    
+    IPAKITA: jb
 
 }
 
-
-
-IPAKITA: ll
 
 
 
