@@ -1148,10 +1148,10 @@ class Parser {
                 }
 
                 if (this.token[this.position].type == TT_LEFT_BRAC) {
-                    console.log(ifIndic+" "+ifStay + " " + execute)
+                    
 
                     while (true) {
-                        console.log(execute)
+                        
                         if (this.position >= this.token.length) {
                             throw new Error("ERROR: Missing Katapusan");
                         }
@@ -1185,16 +1185,16 @@ class Parser {
                                 }
                                 else {
                                     if (isKungWalaExecuted == true) {
-                                        console.log("INSIDE: isKUNG " + this.token[this.position].type)
+                                        
                                         this.position -= 1
-                                        console.log("INSIDE: isKUNG "+this.token[this.position].type)
+                                        
                                         return
                                         
                                     }
                                     if (isKungExecuted == true) {
-                                        console.log("INSIDE: isKUNG " + this.token[this.position].type)
+                                        
                                         this.position -= 1
-                                        console.log("INSIDE: isKUNG "+this.token[this.position].type)
+                                        
                                         break
                                     } 
                                     else {
@@ -1207,7 +1207,7 @@ class Parser {
                         }
                         else if (this.token[this.position].type == TT_KUNG) {
                             this.ifStatement()
-                            console.log("GOGO "+this.token[this.position].value)
+                            
                             this.position-=1
                         }
                         else if (TT_GLOBAL_EXECUTE == true) {
@@ -1218,38 +1218,29 @@ class Parser {
                             console.log("Run exec")
                         }*/
                         else if (this.token[this.position].type == TT_VAR_DEC && ifStay == true && execute == false) {
-                            console.log("GO TEam")
+                            
                             let vardecJson = this.variabelDeclaration()
-                            console.log("CHECK OT " + this.token[this.position].type)
-                            console.log("CHECK OT " + this.token[this.position - 1].type)
-                            console.log("CHECK OT "+this.token[this.position-2].type)
                             this.ast.body.push(vardecJson)
                             this.position-=1
                         }
                         else if (this.token[this.position].type ==TT_IDENTIFIER && ifStay == true && execute == false) {
-                            console.log("GO NOT")
+                            
                             let vardecJson = this.variableAssignement()
-                            console.log("CHECK IT " + this.token[this.position].type)
-                            console.log("CHECK IT " + this.token[this.position - 1].type)
-                            console.log("CHECK IT "+this.token[this.position-2].type)
+                            
                             this.ast.body.push(vardecJson)
                             this.position-=1
                         }
                         else if (this.token[this.position].type ==TT_PRINT && ifStay == true && execute == false) {
-                            console.log("PRINT"+execute)
+                            
                             let vardecJson = this.printFunction()
-                            console.log("CHECK PRINT " + this.token[this.position].type)
-                            console.log("CHECK PRINT " + this.token[this.position - 1].type)
-                            console.log("CHECK PRINT "+this.token[this.position-2].type)
+                            
                             this.ast.body.push(vardecJson)
                             this.position-=1
                         }
                         else if (this.token[this.position].type ==TT_DAWATA && ifStay == true && execute == false) {
-                            console.log("GO INPUT")
+                            
                             let vardecJson = this.inputFunction()
-                            console.log("CHECK INPUT " + this.token[this.position].type)
-                            console.log("CHECK INPUT " + this.token[this.position - 1].type)
-                            console.log("CHECK INPUT "+this.token[this.position-2].type)
+                            
                             this.ast.body.push(vardecJson)
                             this.position-=1
                         }
@@ -1275,7 +1266,7 @@ class Parser {
                     if (this.token[this.position].value == ")") {
 
                         if (holdString == " 1 ") {
-                            console.log("OOHEHE")
+                            
                             ifIndic += 1
                             ifStay = true
                         }
@@ -1335,8 +1326,7 @@ class Parser {
 
                     if (this.token[this.position].type == TT_IDENTIFIER) {
                         let existingVar = this.variableCheck.find(variable => variable["name"] === this.token[this.position].value);
-                        console.log(existingVar)
-                        console.log(this.variableCheck)
+                        
 
                         if (existingVar) {
                             if (existingVar["value"] == "DILI") {
@@ -1357,7 +1347,7 @@ class Parser {
                     }
                     else {
                         if (this.token[this.position].value == '"OO"') {
-                            console.log("OO run")
+                            
                             holdString += " 1 "
                         }
                         else if (this.token[this.position].value == '"DILI"') {
@@ -1377,14 +1367,14 @@ class Parser {
                         }
                         this.position += 1
                     }
-                    console.log(holdString)
+                    
 
 
                 }
 
             }
             else if (this.token[this.position].type == TT_KUNGDILI) {
-                console.log("Run kung dili")
+               
                 if (isKungExecuted == false) {
                     throw new Error("Invalid KUNGDILI Position");
                 }
@@ -1440,12 +1430,12 @@ class Parser {
             else {
                 if (isKungExecuted == true) {
                     TT_GLOBAL_EXECUTE = false
-                    console.log(this.token[this.position].value)
+                    
                     break
                 }
                 else if (isKungWalaExecuted == true) {
                     TT_GLOBAL_EXECUTE = false
-                    console.log("YEHEY"+ this.token[this.position].value)
+                    
                     this.position += 1
                     break
                 }

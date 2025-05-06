@@ -892,7 +892,7 @@ function run(fn, text) {
     let context = new Context("<program>")
     context.symbol_table = global_symbol_table
     let resultint = interpreter.visit(ast.node, context)
-    console.log(resultint)
+    
 
     return [resultint.value, resultint.error]
 }
