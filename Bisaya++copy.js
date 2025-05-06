@@ -1160,6 +1160,7 @@ class Parser {
                             if (ifStay == true) {
                                 execute = true
                             }
+                            TT_GLOBAL_EXECUTE = false
                             
                             isPundok = false
                             isKungExecuted = true
@@ -1209,14 +1210,14 @@ class Parser {
                             console.log("GOGO "+this.token[this.position].value)
                             this.position-=1
                         }
-                        /*else if (TT_GLOBAL_EXECUTE == true) {
+                        else if (TT_GLOBAL_EXECUTE == true) {
 
                         }
-                        else if (execute === true) {
+                        /*else if (execute === true) {
 
                             console.log("Run exec")
                         }*/
-                        else if (this.token[this.position].type == TT_VAR_DEC ) {
+                        else if (this.token[this.position].type == TT_VAR_DEC && ifStay == true && execute == false) {
                             console.log("GO TEam")
                             let vardecJson = this.variabelDeclaration()
                             console.log("CHECK OT " + this.token[this.position].type)
@@ -1225,7 +1226,7 @@ class Parser {
                             this.ast.body.push(vardecJson)
                             this.position-=1
                         }
-                        else if (this.token[this.position].type ==TT_IDENTIFIER) {
+                        else if (this.token[this.position].type ==TT_IDENTIFIER && ifStay == true && execute == false) {
                             console.log("GO NOT")
                             let vardecJson = this.variableAssignement()
                             console.log("CHECK IT " + this.token[this.position].type)
@@ -1243,7 +1244,7 @@ class Parser {
                             this.ast.body.push(vardecJson)
                             this.position-=1
                         }
-                        else if (this.token[this.position].type ==TT_DAWATA) {
+                        else if (this.token[this.position].type ==TT_DAWATA && ifStay == true && execute == false) {
                             console.log("GO INPUT")
                             let vardecJson = this.inputFunction()
                             console.log("CHECK INPUT " + this.token[this.position].type)
@@ -1273,11 +1274,13 @@ class Parser {
 
                     if (this.token[this.position].value == ")") {
 
-                        if (holdString == '"OO"') {
+                        if (holdString == " 1 ") {
+                            console.log("OOHEHE")
                             ifIndic += 1
                             ifStay = true
                         }
-                        else if (holdString == '"DILI"') {
+                        else if (holdString == " 0 ") {
+                            TT_GLOBAL_EXECUTE = true
                             ifIndic += 1
                             ifStay = false
                         }
@@ -1294,6 +1297,7 @@ class Parser {
 
                                     }
                                     else {
+                                        TT_GLOBAL_EXECUTE = true
                                         ifIndic += 1
                                         ifStay = false
 

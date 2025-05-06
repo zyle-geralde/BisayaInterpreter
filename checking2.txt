@@ -6,19 +6,30 @@ MUGNA NUMERO jj = 45
 MUGNA NUMERO jb = 47
 MUGNA NUMERO jc = 48
 
-KUNG ("OO" UG "OO")PUNDOK {
+KUNG ("OO")PUNDOK {
+    KUNG ("OO")PUNDOK{
+        MUGNA NUMERO kk = 90
+        IPAKITA: "HELLO" & " " & kk
+    }
+
     IPAKITA: ja
 
 }
 KUNG DILI ("OO" UG "DILI") PUNDOK {
-    IPAKITA: jj
+    MUGNA letra hh = 'a'
+    MUGNA NUMERO kk = 79
+    IPAKITA: jj 
+    IPAKITA: hh
 
 }
 KUNG DILI ("OO" UG "OO") PUNDOK {
-    
+    KUNG("OO")PUNDOK{
+        jb = 50
+    }
     IPAKITA: jb
 
 }
+
 
 
 
