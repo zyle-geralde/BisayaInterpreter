@@ -1,3 +1,5 @@
+
+
 const { error } = require("console");
 
 
@@ -45,12 +47,13 @@ const LPAREN = "LPAREN"
 const RPAREN = "RPAREN"
 TT_EOF = "EOF"
 TT_KEYWORD = 'KEYWORD'
-TT_PLUS     	= 'PLUS'
-TT_MINUS    	= 'MINUS'
-TT_MUL      	= 'MUL'
-TT_DIV      	= 'DIV'
+TT_PLUS         = 'PLUS'
+TT_MINUS        = 'MINUS'
+TT_MUL          = 'MUL'
+TT_DIV          = 'DIV'
 TT_POW = 'POW'
-TT_IDENTIFIER	= 'IDENTIFIER'
+TT_IDENTIFIER   = 'IDENTIFIER'
+TT_MOD = 'MOD' // ADDED MODULO TOKEN
 
 //recent changes
 TT_EE = 'EE'
@@ -159,7 +162,7 @@ class Position {
     }
 }
 
-//TOKEN creation 
+//TOKEN creation
 class Token {
     constructor(type, value = null, pos_start = null, pos_end = null) {
         this.type = type;
@@ -178,9 +181,9 @@ class Token {
     matches(type_, value) {
         return this.type === type_ && this.value === value;
     }
-    
+
     toString() {
-        return this.value !== null ? `${this.type}:${this.value}` : `${this.type}`;
+        return this.value !== null ? `<span class="math-inline">\{this\.type\}\:</span>{this.value}` : `${this.type}`;
     }
 }
 
@@ -226,8 +229,9 @@ class Lexer {
                 tokens.push(new Token(DIV, this.pos.copy()))
                 this.advance()
             }
-            else if (this.current_char === "%") { 
-                tokens.push(new Token(MOD, this.pos.copy()))
+            // ADDED MODULO HANDLING
+            else if (this.current_char === "%") {
+                tokens.push(new Token(TT_MOD, this.pos.copy()))
                 this.advance()
             }
             else if (this.current_char === "(") {
@@ -239,15 +243,6 @@ class Lexer {
                 this.advance()
             }
             //recent changes
-            /*else if (this.current_char === '!') {
-                let { token, error } = this.make_not_equals();
-            
-                if (error) {
-                    return { tokens: [], error }; 
-                }
-            
-                tokens.push(token);
-            }*/
             else if (this.current_char === "=") {
                 // Check if this is a comparison (==) or assignment (=)
                 if (this.text[this.pos.idx + 1] === '=') {
@@ -304,7 +299,7 @@ class Lexer {
     make_identifier() {
         let id_str = '';
         let pos_start = this.pos.copy();
-    
+
         while (
             this.current_char !== null &&
             (LETTERS_DIGITS + '_').includes(this.current_char)
@@ -312,8 +307,7 @@ class Lexer {
             id_str += this.current_char;
             this.advance();
         }
-        
-        // Only treat as keyword if it matches exactly
+
         let tok_type = KEYWORDS.includes(id_str) ? TT_KEYWORD : TT_IDENTIFIER;
 
         return new Token(tok_type, id_str, pos_start, this.pos);
@@ -451,7 +445,7 @@ class Parser {
     parse() {
         let res = this.expr()
         if (!res.error && this.current_tok.type != TT_EOF) {
-            return res.failure(new IllegalSyntaxError(this.current_tok.pos_start, this.current_tok.pos_end, "Expected + - * or /"))
+            return res.failure(new IllegalSyntaxError(this.current_tok.pos_start, this.current_tok.pos_end, "Expected + - * / or %"))
         }
         return res
     }
@@ -465,76 +459,68 @@ class Parser {
         if (res.error) return res
         return res.success(new UnaryOpNode(tok, factor))
 
-    }
-    else if ([TIPIK, NUMERO].includes(tok.type)) {
-        res.register(this.advance())
-        return res.success(new NumberNode(tok))
-    }
-    else if (tok.type == LPAREN) {
-        res.register(this.advance())
-        let expr = res.register(this.expr())
-        
-        if (res.error) return res
-        if (this.current_tok.type == RPAREN) {
+        }
+        else if ([TIPIK, NUMERO].includes(tok.type)) {
             res.register(this.advance())
-            return res.success(expr)
+            return res.success(new NumberNode(tok))
         }
-        else {
-            
-            return res.failure(new IllegalSyntaxError(
-                this.current_tok.pos_start, this.current_tok.pos_end,
-                "Expected ')'"
-            ))
+        else if (tok.type == LPAREN) {
+            res.register(this.advance())
+            let expr = res.register(this.expr())
+
+            if (res.error) return res
+            if (this.current_tok.type == RPAREN) {
+                res.register(this.advance())
+                return res.success(expr)
+            }
+            else {
+
+                return res.failure(new IllegalSyntaxError(
+                    this.current_tok.pos_start, this.current_tok.pos_end,
+                    "Expected ')'"
+                ))
+            }
         }
-    }
+
         return res.failure(new IllegalSyntaxError(tok.pos_start, tok.pos_end, "Expected int or float"))
     }
     term() {
-        return this.bin_op(() => this.factor(), [MUL, DIV, MOD])
+        return this.bin_op(() => this.factor(), [MUL, DIV, TT_MOD]) // ADDED MOD TO TERM OPERATORS
     }
     arith_expr() {
         return this.bin_op(() => this.term(), [TT_PLUS, TT_MINUS]);
     }
     comp_expr() {
         let res = new ParseResult();
-
+    
         if (this.current_tok.matches(TT_KEYWORD, 'DILI')) {
             let op_tok = this.current_tok;
             res.register_advancement();
             this.advance();
-
+    
             let node = res.register(this.comp_expr());
             if (res.error) {
-                
+    
                 return res;
             }
-
+    
             return res.success(new UnaryOpNode(op_tok, node));
         }
         //delete this if ever
-        /*if (this.current_tok.matches(TT_IDENTIFIER, '"DILI"')) {
-            let node = res.register(this.advance())
-            this.current_tok.value = 0
-            return res.success(new NumberNode(this.current_tok,node))
-        }
-        if (this.current_tok.matches(TT_IDENTIFIER, '"OO"')) {
-            let node = res.register(this.advance())
-            this.current_tok.value = 1
-            return res.success(new NumberNode(this.current_tok,node))
-        }*/
-
+        
+    
         let node = res.register(this.bin_op(
             () => this.arith_expr(),
             [TT_EE, TT_NE, TT_LT, TT_GT, TT_LTE, TT_GTE]
         ));
         if (res.error) {
-            
+    
             return res.failure(new InvalidSyntaxError(
                 this.current_tok.pos_start, this.current_tok.pos_end,
                 "Expected int, float, identifier, '+', '-', '(' or 'NOT'"
             ));
         }
-
+    
         return res.success(node);
     }
     expr() {
@@ -542,12 +528,12 @@ class Parser {
         //change today May 1
         //return this.bin_op(() => this.comp_expr(), [(TT_KEYWORD, "UG"), (TT_KEYWORD, "O")])
         let node = res.register(this.bin_op(
-            () => this.comp_expr(), 
+            () => this.comp_expr(),
             [[TT_KEYWORD, 'UG'], [TT_KEYWORD, 'O']]
         ));
-
+    
         if (res.error) {
-            
+    
             return res.failure(new InvalidSyntaxError(
                 this.current_tok.pos_start,
                 this.current_tok.pos_end,
@@ -557,33 +543,18 @@ class Parser {
     
         return res.success(node);
     }
-    /*bin_op(func, ops) {
-        let res = new ParseResult()
-        let left = res.register(func())
-        console.log(res.error)
-        if (res.error) return res
 
-        while (ops.includes(this.current_tok.type) || (this.current_tok.type, this.current_tok.value) in ops) {
-            let op_tok = this.current_tok
-            res.register(this.advance())
-            let right = res.register(func())
-            console.log(res.error)
-            if (res.error) return res
-            left = new BinOpNode(left, op_tok, right)
-        }
-        return res.success(left)
-    }*/
     
         bin_op(func_a, ops, func_b = null) {
             if (func_b === null) {
                 func_b = func_a;
             }
-        
+    
             const res = new ParseResult();
             let left = res.register(func_a());
-            
+    
             if (res.error) return res;
-
+    
             while (
                 ops.includes(this.current_tok.type) ||
                 ops.some(op => Array.isArray(op) && this.current_tok.type === op[0] && this.current_tok.value === op[1])
@@ -591,337 +562,339 @@ class Parser {
                 const op_tok = this.current_tok;
                 res.register_advancement();
                 this.advance();
-        
+    
                 const right = res.register(func_b());
                 if (res.error) return res;
-        
+    
                 left = new BinOpNode(left, op_tok, right);
             }
-        
+    
             return res.success(left);
         }
-
-}
-
-class RTResult {
-    constructor() {
-        this.value = null
-        this.error = null
+    
     }
-    register(res) {
-        if (res.error) {
-            this.error = res.error
+    
+    class RTResult {
+        constructor() {
+            this.value = null
+            this.error = null
         }
-        return res.value
-    }
-    success(value) {
-        this.value = value
-        return this
-    }
-    failure(error) {
-        this.error = error
-        return this
-    }
-}
-//Value
-class Number {
-    constructor(value, isBool = false) {
-        this.value = value
-        this.isBool = isBool
-        this.set_pos()
-        this.set_context()
-
-    }
-    set_pos(pos_start = null, pos_end = null) {
-        this.pos_start = pos_start
-        this.pos_end = pos_end
-        return this
-    }
-    set_context(context = null) {
-        this.context = context
-        return this
-    }
-    added_to(other) {
-        if (other instanceof Number) {
-            return [new Number(this.value + other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
-        }
-        return null
-    }
-    subbed_by(other) {
-        if (other instanceof Number) {
-            return [new Number(this.value - other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
-        }
-        return null
-    }
-    multed_by(other) {
-        if (other instanceof Number) {
-            return [new Number(this.value * other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
-        }
-        return null
-    }
-    divided_by(other) {
-        if (other instanceof Number) {
-            if (other.value == 0) {
-                return [null, new RTError(other.pos_start, other.pos_end, "Division by zero", this.context)]
+        register(res) {
+            if (res.error) {
+                this.error = res.error
             }
-            return [new Number(this.value / other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
+            return res.value
         }
-        return null
+        success(value) {
+            this.value = value
+            return this
+        }
+        failure(error) {
+            this.error = error
+            return this
+        }
     }
-    modded_by(other) {
-        if (other instanceof Number) {
-            if (other.value == 0) {
-                return [null, new RTError(other.pos_start, other.pos_end, "Modulo by zero", this.context)]
+    //Value
+    class Number {
+        constructor(value, isBool = false) {
+            this.value = value
+            this.isBool = isBool
+            this.set_pos()
+            this.set_context()
+    
+        }
+        set_pos(pos_start = null, pos_end = null) {
+            this.pos_start = pos_start
+            this.pos_end = pos_end
+            return this
+        }
+        set_context(context = null) {
+            this.context = context
+            return this
+        }
+        added_to(other) {
+            if (other instanceof Number) {
+                return [new Number(this.value + other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
             }
-            return [new Number(this.value % other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
+            return null
         }
-        return [null, new RTError(this.pos_start, this.pos_end, "Invalid operand for modulo", this.context)]
-    }
-    get_comparison_eq(other) {
-        if (other instanceof Number) {
+        subbed_by(other) {
+            if (other instanceof Number) {
+                return [new Number(this.value - other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
+            }
+            return null
+        }
+        multed_by(other) {
+            if (other instanceof Number) {
+                return [new Number(this.value * other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
+            }
+            return null
+        }
+        divided_by(other) {
+            if (other instanceof Number) {
+                if (other.value == 0) {
+                    return [null, new RTError(other.pos_start, other.pos_end, "Division by zero", this.context)]
+                }
+                return [new Number(this.value / other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
+            }
+            return null
+        }
+        // ADDED modulo_by METHOD
+        modulo_by(other) {
+            if (other instanceof Number) {
+                if (other.value == 0) {
+                    return [null, new RTError(other.pos_start, other.pos_end, "Modulo by zero", this.context)]
+                }
+                return [new Number(this.value % other.value).set_context(this.context).set_pos(this.pos_start, other.pos_end), null]
+            }
+            return null
+        }
+        get_comparison_eq(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value === other.value ? 1 : 0,true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        get_comparison_ne(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value !== other.value ? 1 : 0,true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        get_comparison_lt(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value < other.value ? 1 : 0,true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        get_comparison_gt(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value > other.value ? 1 : 0,true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        get_comparison_lte(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value <= other.value ? 1 : 0,true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        get_comparison_gte(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value >= other.value ? 1 : 0,true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        anded_by(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value && other.value ? 1 : 0, true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        ored_by(other) {
+            if (other instanceof Number) {
+                return {
+                    result: new Number(this.value || other.value ? 1 : 0,true).set_context(this.context),
+                    error: null
+                };
+            }
+        }
+    
+        notted() {
             return {
-                result: new Number(this.value === other.value ? 1 : 0,true).set_context(this.context),
+                result: new Number(this.value === 0 ? 1 : 0,true).set_context(this.context),
                 error: null
             };
         }
+    
+        copy() {
+            const copy = new Number(this.value);
+            copy.set_pos(this.pos_start, this.pos_end);
+            copy.set_context(this.context);
+            return copy;
+        }
+        toString() {
+            return this.value.toString()
+        }
+    
     }
-
-    get_comparison_ne(other) {
-        if (other instanceof Number) {
-            return {
-                result: new Number(this.value !== other.value ? 1 : 0,true).set_context(this.context),
-                error: null
-            };
+    //Context
+    class Context {
+        constructor(display_name, parent = null, parent_entry_pos = null) {
+            this.display_name = display_name
+            this.parent_entry_pos = parent_entry_pos
+            this.parent = parent
         }
     }
-
-    get_comparison_lt(other) {
-        if (other instanceof Number) {
-            return {
-                result: new Number(this.value < other.value ? 1 : 0,true).set_context(this.context),
-                error: null
-            };
+    
+    class SymbolTable {
+        constructor() {
+          this.symbols = {};
+          this.parent = null;
         }
-    }
-
-    get_comparison_gt(other) {
-        if (other instanceof Number) {
-            return {
-                result: new Number(this.value > other.value ? 1 : 0,true).set_context(this.context),
-                error: null
-            };
+    
+        get(name) {
+          const value = this.symbols[name];
+          if (value === undefined && this.parent) {
+            return this.parent.get(name);
+          }
+          return value;
         }
-    }
-
-    get_comparison_lte(other) {
-        if (other instanceof Number) {
-            return {
-                result: new Number(this.value <= other.value ? 1 : 0,true).set_context(this.context),
-                error: null
-            };
+    
+        set(name, value) {
+          this.symbols[name] = value;
         }
-    }
-
-    get_comparison_gte(other) {
-        if (other instanceof Number) {
-            return {
-                result: new Number(this.value >= other.value ? 1 : 0,true).set_context(this.context),
-                error: null
-            };
+    
+        remove(name) {
+          delete this.symbols[name];
         }
-    }
-
-    anded_by(other) {
-        if (other instanceof Number) {
-            return {
-                result: new Number(this.value && other.value ? 1 : 0, true).set_context(this.context),
-                error: null
-            };
-        }
-    }
-
-    ored_by(other) {
-        if (other instanceof Number) {
-            return {
-                result: new Number(this.value || other.value ? 1 : 0,true).set_context(this.context),
-                error: null
-            };
-        }
-    }
-
-    notted() {
-        return {
-            result: new Number(this.value === 0 ? 1 : 0,true).set_context(this.context),
-            error: null
-        };
-    }
-
-    copy() {
-        const copy = new Number(this.value);
-        copy.set_pos(this.pos_start, this.pos_end);
-        copy.set_context(this.context);
-        return copy;
-    }
-    toString() {
-        return this.value.toString()
-    }
-
-}
-//Context
-class Context {
-    constructor(display_name, parent = null, parent_entry_pos = null) {
-        this.display_name = display_name
-        this.parent_entry_pos = parent_entry_pos
-        this.parent = parent
-    }
-}
-
-class SymbolTable {
-    constructor() {
-      this.symbols = {};
-      this.parent = null;
-    }
-  
-    get(name) {
-      const value = this.symbols[name];
-      if (value === undefined && this.parent) {
-        return this.parent.get(name);
       }
-      return value;
+    
+    //INTERPRETER
+    class Interpreter {
+        visit(node, context) {
+            let method_name = `visit_${node.constructor.name}`
+            let method = this[method_name] || this.no_visit_method;
+            return method.call(this, node, context) // Pass context here
+    
+        }
+        no_visit_method(node, context) {
+            throw new Error(`No visit_${node.constructor.name} method defined`);
+        }
+    
+        visit_NumberNode(node, context) {
+            return new RTResult().success(new Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end))
+            //console.log("Found number node!")
+        }
+        visit_BinOpNode(node, context) {
+            let res = new RTResult()
+            let left = res.register(this.visit(node.left_node, context))
+            if (res.error) return res
+            let right = res.register(this.visit(node.right_node, context))
+            if (res.error) return res
+    
+            if (!left || !right) {
+                throw new Error(`Invalid operands for operation: ${node.op_tok.value}`);
+            }
+    
+            let result = null
+            let error = null
+            if (node.op_tok.type == PLUS) {
+                [result, error] = left.added_to(right)
+            }
+            else if (node.op_tok.type == MINUS) {
+                [result, error] = left.subbed_by(right)
+            }
+            else if (node.op_tok.type == MUL) {
+                [result, error] = left.multed_by(right)
+            }
+            else if (node.op_tok.type == DIV) {
+                [result, error] = left.divided_by(right)
+            }
+            // ADDED MODULO INTERPRETATION
+            else if (node.op_tok.type == TT_MOD) {
+                [result, error] = left.modulo_by(right)
+            }
+            else if (node.op_tok.type === TT_EE) {
+                ({ result, error } = left.get_comparison_eq(right));
+            } else if (node.op_tok.type === TT_NE) {
+                ({ result, error } = left.get_comparison_ne(right));
+            } else if (node.op_tok.type === TT_LT) {
+                ({ result, error } = left.get_comparison_lt(right));
+            } else if (node.op_tok.type === TT_GT) {
+                ({ result, error } = left.get_comparison_gt(right));
+            } else if (node.op_tok.type === TT_LTE) {
+                ({ result, error } = left.get_comparison_lte(right));
+            } else if (node.op_tok.type === TT_GTE) {
+                ({ result, error } = left.get_comparison_gte(right));
+            } else if (node.op_tok.matches(TT_KEYWORD, 'UG')) {
+                ({ result, error } = left.anded_by(right));
+            } else if (node.op_tok.matches(TT_KEYWORD, 'O')) {
+                ({ result, error } = left.ored_by(right));
+            }
+            if (error) {
+                return res.failure(error)
+            }
+            else {
+                return res.success(result.set_pos(node.pos_start, node.pos_end))
+            }
+        }
+        visit_UnaryOpNode(node, context) {
+            let res = new RTResult()
+            let number = res.register(this.visit(node.node, context))
+            if (res.error) {
+                return res
+            }
+    
+            let error = null
+            if (node.op_tok.type == MINUS) {
+                [number, error] = number.multed_by(new Number(-1))
+            }
+            else if (node.op_tok.matches(TT_KEYWORD, 'DILI')) {
+                ({ result: number, error } = number.notted());
+            }
+            if (error) {
+                return res.failure(error)
+            }
+            else {
+                return res.success(number.set_pos(node.pos_start, node.pos_end))
+            }
+    
+        }
+    
     }
-  
-    set(name, value) {
-      this.symbols[name] = value;
+    
+    const global_symbol_table = new SymbolTable();
+    global_symbol_table.set("NULL", new Number(0));
+    global_symbol_table.set("FALSE", new Number(0));
+    global_symbol_table.set("TRUE", new Number(1));
+    
+    //RUN
+    function run(fn, text) {
+        let lexer = new Lexer(fn, text);
+        let result = lexer.make_tokens();
+        if (result.error) {
+            return [null, result.error]
+        }
+    
+        //Generate abstract syntax tree
+        let parser = new Parser(result.tokens)
+        let ast = parser.parse()
+        if (ast.error) {
+            return [null, ast.error]
+        }
+    
+        let interpreter = new Interpreter()
+        let context = new Context("<program>")
+        context.symbol_table = global_symbol_table
+        let resultint = interpreter.visit(ast.node, context)
+    
+    
+        return [resultint.value, resultint.error]
     }
-  
-    remove(name) {
-      delete this.symbols[name];
-    }
-  }
-
-//INTERPRETER
-class Interpreter {
-    visit(node, context) {
-        let method_name = `visit_${node.constructor.name}`
-        let method = this[method_name] || this.no_visit_method;
-        return method.call(this, node)
-
-    }
-    no_visit_method(node, context) {
-        throw new Error(`No visit_${node.constructor.name} method defined`);
-    }
-
-    visit_NumberNode(node, context) {
-        return new RTResult().success(new Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end))
-         //console.log("Found number node!")
-    }
-    visit_BinOpNode(node, context) {
-        let res = new RTResult()
-        let left = res.register(this.visit(node.left_node, context))
-        if (res.error) return res
-        let right = res.register(this.visit(node.right_node, context))
-        if (res.error) return res
-
-        if (!left || !right) {
-            throw new Error(`Invalid operands for operation: ${node.op_tok.value}`);
-        }
-
-        let result = null
-        let error = null
-        if (node.op_tok.type == PLUS) {
-            [result, error] = left.added_to(right)
-        }
-        else if (node.op_tok.type == MINUS) {
-            [result, error] = left.subbed_by(right)
-        }
-        else if (node.op_tok.type == MUL) {
-            [result, error] = left.multed_by(right)
-        }
-        else if (node.op_tok.type == DIV) {
-            [result, error] = left.divided_by(right)
-        }
-        else if (node.op_tok.type == MOD) {  
-            [result, error] = left.modded_by(right)
-        }
-        else if (node.op_tok.type === TT_EE) {
-            ({ result, error } = left.get_comparison_eq(right));
-        } else if (node.op_tok.type === TT_NE) {
-            ({ result, error } = left.get_comparison_ne(right));
-        } else if (node.op_tok.type === TT_LT) {
-            ({ result, error } = left.get_comparison_lt(right));
-        } else if (node.op_tok.type === TT_GT) {
-            ({ result, error } = left.get_comparison_gt(right));
-        } else if (node.op_tok.type === TT_LTE) {
-            ({ result, error } = left.get_comparison_lte(right));
-        } else if (node.op_tok.type === TT_GTE) {
-            ({ result, error } = left.get_comparison_gte(right));
-        } else if (node.op_tok.matches(TT_KEYWORD, 'UG')) {
-            ({ result, error } = left.anded_by(right));
-        } else if (node.op_tok.matches(TT_KEYWORD, 'O')) {
-            ({ result, error } = left.ored_by(right));
-        }
-        if (error) {
-            return res.failure(error)
-        }
-        else {
-            return res.success(result.set_pos(node.pos_start, node.pos_end))
-        }
-    }
-    visit_UnaryOpNode(node, context) {
-        let res = new RTResult()
-        let number = res.register(this.visit(node.node, context))
-        if (res.error) {
-            return res
-        }
-
-        let error = null
-        if (node.op_tok.type == MINUS) {
-            [number, error] = number.multed_by(new Number(-1))
-        }
-        else if (node.op_tok.matches(TT_KEYWORD, 'DILI')) {
-            ({ result: number, error } = number.notted());
-        }
-        if (error) {
-            return res.failure(error)
-        }
-        else {
-            return res.success(number.set_pos(node.pos_start, node.pos_end))
-        }
-
-    }
-
-}
-
-const global_symbol_table = new SymbolTable();
-global_symbol_table.set("NULL", new Number(0));
-global_symbol_table.set("FALSE", new Number(0));
-global_symbol_table.set("TRUE", new Number(1));
-
-//RUN
-function run(fn, text) {
-    let lexer = new Lexer(fn, text);
-    let result = lexer.make_tokens();
-    if (result.error) {
-        return [null, result.error]
-    }
-
-    //Generate abstract syntax tree
-    let parser = new Parser(result.tokens)
-    let ast = parser.parse()
-    if (ast.error) {
-        return [null, ast.error]
-    }
-
-    let interpreter = new Interpreter()
-    let context = new Context("<program>")
-    context.symbol_table = global_symbol_table
-    let resultint = interpreter.visit(ast.node, context)
-    console.log(resultint)
-
-    return [resultint.value, resultint.error]
-}
-
-module.exports = { run };
+    
+    module.exports = { run };
 
 
 

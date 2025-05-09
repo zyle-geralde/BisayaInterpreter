@@ -1,16 +1,14 @@
 SUGOD
--- KUNG PUNDOK
--- KUNG WALA { } KUNG 
--- DILI
+
 MUGNA LETRA aa,bb = 'j',cc = bb
-MUGNA NUMERO x = -28
+MUGNA NUMERO x = -3
 MUGNA LETRA a,b = 'e',c = a
-MUGNA NUMERO p = 56 - 45 + x, t = p + x - p
+MUGNA NUMERO p = 4 - 6 + x, t = p + x - p
 
-MUGNA TIPIK jj = 9 + 34.6 --jj
-p = x = 45 *2 - p
+MUGNA TIPIK jj = ((100 *5)/10 + 10) * -1 
+p = x = 3 *2 - p
 
-MUGNA TINUOD ja = "DILI", je = DILI"OO" , jc = "OO"
+MUGNA TINUOD ja ="DILI", je = DILI"OO" , jc = "OO"
 MUGNA TINUOD kk = (DILI ja O "DILI") O jc 
 ja = jc UG "OO"
 ja = "DILI"
@@ -23,7 +21,7 @@ IPAKITA: "MATA"  & jc & $
 jc= "OO" UG ja
 
 jk = ja = jk
-ja = jk
+ja =  (4 < 2 O 10 <= 10 UG 5<> 5)
 
 IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
 IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
@@ -31,7 +29,7 @@ IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
 IPAKITA: ja & ' ' & je & ' ' & jc &$ 
 IPAKITA: kk & $ & jk & $
 
-IPAKITA: "mas gamay sa 0"
+IPAKITA:  x & jk & jc & $ & ja & [#] & "last"
 KATAPUSAN
     
 
