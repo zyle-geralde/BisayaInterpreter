@@ -1,35 +1,7 @@
 SUGOD
-
-MUGNA LETRA aa,bb = 'j',cc = bb
-MUGNA NUMERO x = -3
-MUGNA LETRA a,b = 'e',c = a
-MUGNA NUMERO p = 4 - 6 + x, t = p + x - p
-
-MUGNA TIPIK jj = ((100 *5)/10 + 10) * -1 
-p = x = 3 *2 - p
-
-MUGNA TINUOD ja ="DILI", je = DILI"OO" , jc = "OO"
-MUGNA TINUOD kk = (DILI ja O "DILI") O jc 
-ja = jc UG "OO"
-ja = "DILI"
---jc = (DILI ja O "DILI") O jc
-MUGNA TINUOD jk = "OO"
---DAWATA: jk
-
-IPAKITA: "MATA"  & jc & $ 
-
-jc= "OO" UG ja
-
-jk = ja = jk
-ja =  (4 < 2 O 10 <= 10 UG 5<> 5)
-
-IPAKITA: jj & ' ' & ' ' & p & ' ' &' ' & x & ' ' & t &$
-IPAKITA: a & " " & b & " " & bb & ' ' & cc & ' ' & cc &$
-
-IPAKITA: ja & ' ' & je & ' ' & jc &$ 
-IPAKITA: kk & $ & jk & $
-
-IPAKITA:  x & jk & jc & $ & ja & [#] & "last"
+	MUGNA NUMERO a = 3, b = 4, c, d
+	d = 3 + 4 * a 
+    IPAKITA: d
 KATAPUSAN
     
 

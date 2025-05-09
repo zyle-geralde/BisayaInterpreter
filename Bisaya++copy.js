@@ -2,6 +2,7 @@ const fs = require('fs');
 const readlineSync = require("readline-sync");
 
 const { run } = require('./Bisaya++');
+const { type } = require('os');
 
 fs.readFile('checking.txt', 'utf8', (err, data) => {
     if (err) { console.error('Error reading file:', err); return; }
@@ -395,25 +396,6 @@ class Lexer {
                     let newtoken = new Token(value, "Invalid Syntax")
                     tokens.push(newtoken)
                 }
-            }
-            else if (this.text[this.indx] === "[") {
-                const start = this.indx;
-                this.indx++; // move past '['
-                
-                if (this.indx >= this.text.length) {
-                    throw new Error("Invalid escape sequence: reached end after '['");
-                }
-                
-                let char = this.text[this.indx]; // the character inside brackets
-                this.indx++; // move past character
-                
-                if (this.indx >= this.text.length || this.text[this.indx] !== "]") {
-                    throw new Error(`Invalid escape sequence: missing closing ']' after position ${start}`);
-                }
-                
-                this.indx++; // move past ']'
-                
-                tokens.push(new Token(char, TT_ESCAPE)); // Store just the character
             }
             else {
                 let newtoken = new Token(this.text[this.indx], "Not defined yet")
@@ -996,112 +978,95 @@ class Parser {
         return assignmentJSON
     }
 
-
     printFunction() {
-        let printJSON = { "type": "PrintFunction", "expression": [] }
-        this.position += 1
-        if (this.position < this.token.length) {
-            if (this.token[this.position].type != TT_COLON || this.token[this.position].type == TT_NEWLINE) {
-                throw new Error("COLON needed");
-            }
-            this.position += 1
-            if (this.position < this.token.length) {
-                if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || 
-                this.token[this.position].type == TT_STRING || 
-                this.token[this.position].type == TT_NEXTLINE ||
-                this.token[this.position].type == TT_ESCAPE) {
-                    let printElem = { 
-                        "type": (this.token[this.position].type == TT_IDENTIFIER ? 
-                            "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : 
-                            this.token[this.position].type == TT_STRING ? "String" : 
-                            this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : 
-                            this.token[this.position].type == TT_ESCAPE ? "Escape" : 
-                            "Unknown"),  
-                        "name": this.token[this.position].value 
-                    }
-                    printJSON["expression"].push(printElem)
-                }
-                else if (this.token[this.position].type == TT_OPEN_BRAK) {
-                    if (this.position + 2 >= this.token.length) {
-                        throw new Error("ERROR: Invalid closing Brackets");
-                    }
-                    if (this.token[this.position + 2].type == TT_CLOSE_BRAK) {
-                        let printElem = { "type": "String", "name": this.token[this.position+1].value+"" }
-                        printJSON["expression"].push(printElem)
-                        this.position += 2
-                    }
-                    else {
-                        throw new Error("ERROR: Should have opening Brackets");
-                    }
-                }
-                else {
-                    throw new Error("Invalid format");
-                }
-            }
-            else {
-                throw new Error("ERROR: KATAPUSAN missing");
-            }
-            this.position += 1
-
-            let beforeToken = "indetifier"
-            while (true) {
-                if (this.position >= this.token.length) {
-                    throw new Error("missing Katapusan");
-                }
-                if (this.token[this.position].type == TT_NEWLINE) {
-                    if (beforeToken == "indetifier") {
-                        break
-                    }
-                    else {
-                        throw new Error("Concat and Nextline should not be last");
-                    }
-                }
-                if (beforeToken == "indetifier") {
-                    if (this.token[this.position].type == TT_CONCAT) {
-                        let printElem = { "type": this.token[this.position].type, "name": this.token[this.position].value }
-                        printJSON["expression"].push(printElem)
-                        this.position += 1
-                        beforeToken = "nonindetifier"
-                    }
-                    else {
-                        throw new Error("Invalid Separation of Variables, string, indetifier");
-                    }
-                }
-                else {
-                    if (this.token[this.position].type == TT_IDENTIFIER || dtype.includes(this.token[this.position].type) || this.token[this.position].type == TT_STRING || this.token[this.position].type == TT_NEXTLINE) {
-                        let printElem = { "type": (this.token[this.position].type == TT_IDENTIFIER ? "Variable" : dtype.includes(this.token[this.position].type) ? "Value" : this.token[this.position].type == TT_STRING ? "String" : this.token[this.position].type == TT_NEXTLINE ? TT_NEXTLINE : "Unknown"), "name": this.token[this.position].value }
-                        printJSON["expression"].push(printElem)
-                        this.position += 1
-                        beforeToken = "indetifier"
-                    }
-                    else if (this.token[this.position].type == TT_OPEN_BRAK) {
-                        if (this.position + 2 >= this.token.length) {
-                            throw new Error("ERROR: Invalid closing Brackets");
-                        }
-                        if (this.token[this.position + 2].type == TT_CLOSE_BRAK) {
-                            let printElem = { "type": "String", "name": this.token[this.position+1].value+"" }
-                            printJSON["expression"].push(printElem)
-                            this.position += 3
-                            beforeToken = "indetifier"
-                        }
-                        else {
-                            throw new Error("ERROR: Should have opening Brackets");
-                        }
-                    }
-                    else {
-                        throw new Error("Invalid format");
-                    }
-                }
-            }
-
-        }
-        else {
-            throw new Error("ERROR: KATAPUSAN missing");
+        let printJSON = {
+            type:"PrintFunction",
+            expression:[]
         }
 
+        this.position++;
         
-        return printJSON
+        if(this.position >= this.token.length){
+            throw new Error("ERROR: Missing Katapusan");
+        }
+
+        const tokenType = this.token[this.position].type;
+        if(tokenType === TT_NEWLINE){
+            throw new Error("ERROR: Missing expression");
+        }
+
+        if(tokenType !== TT_COLON){
+            throw new Error("ERROR: Missing expression");
+        }
+
+        this.position++;
+        this.parsePrintExpressions(printJSON);
+        return printJSON;
     }
+    
+    parsePrintExpressions(printJSON) {
+        let expecting = "expression";
+        while(this.position < this.token.length){
+            const token = this.token[this.position]
+            if(token.type === TT_NEWLINE){
+                if(expecting === "expression"){
+                    throw new Error("Error start line")
+                }else{
+                    break;
+                }
+            }
+
+            if(expecting === "expression"){
+                if( token.type === TT_IDENTIFIER ||
+                    token.type === TT_STRING ||
+                    token.type === TT_NEXTLINE ||
+                    dtype.includes(token.type)
+                ){
+                    printJSON.expression.push(this.buildPrintElement(token));
+                    this.position++;
+                    expecting = "concat"
+                }else if(token.type === TT_OPEN_BRAK){
+                    if( this.position+2 >= this.token.length ||
+                        this.token[this.position+2].type !== TT_CLOSE_BRAK
+                    ){
+                        throw new Error("Missing Close Bracket")
+                    }
+                    printJSON.expression.push({
+                        type: "String",
+                        name: this.token[this.position+1].value 
+                    })
+                    this.position+=3;
+                    expecting = "concat"
+                }else{
+                    throw new Error("Incorrect Lexer Format")
+                }
+            }
+            else if (expecting === "concat") {
+                if (token.type === TT_CONCAT) {
+                    printJSON.expression.push(this.buildPrintElement(token));
+                    this.position++;
+                    expecting = "expression";
+                } else {
+                    throw new Error("Error: No Concat Operator");
+                }
+            }
+        }
+    }
+    
+    
+    buildPrintElement(token) {
+        let type;
+        if (token.type === TT_IDENTIFIER) type = "Variable";
+        else if (dtype.includes(token.type)) type = "Value";
+        else if (token.type === TT_STRING) type = "String";
+        else if (token.type === TT_CONCAT) type = "CONCAT"
+        else if (token.type === TT_NEXTLINE) type = TT_NEXTLINE;
+        else type = "Unknown";
+    
+        return { type, name: token.value };
+    }
+    
+    
 
     inputFunction() {
         
@@ -1671,15 +1636,13 @@ class Interpreter {
             else if (expr["type"] == "NEXTLINE") {
                 this.executeString += "\n"
             }
-            else if (expr["type"] == "Escape") {
-                this.executeString += expr["name"]
+            else {
 
             }
         }
 
         return this.executeString
     }
-
     executeInputFunction(nodes) {
         let values = [];
         let goodList = [];
