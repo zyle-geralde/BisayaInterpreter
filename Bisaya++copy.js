@@ -4,14 +4,19 @@ const readlineSync = require("readline-sync");
 const { run } = require('./Bisaya++');
 
 fs.readFile('checking.txt', 'utf8', (err, data) => {
-    if (err) { console.error('Error reading file:', err); return; }
-    let interpreter = new Lexer(data)
-    let get_tokens = interpreter.make_tokens()
-    console.log(get_tokens)
-    let parser = new Parser(get_tokens)
-    let astTree = parser.parse()
-    let executer = new Interpreter(astTree)
-    executer.execute()
+    try {
+        if (err) { console.error('Error reading file:', err); return; }
+        let interpreter = new Lexer(data)
+        let get_tokens = interpreter.make_tokens()
+        let parser = new Parser(get_tokens)
+        let astTree = parser.parse()
+        let executer = new Interpreter(astTree)
+        executer.execute()
+    }
+    catch (e) {
+        console.log(e.message)
+    }
+
 
 });
 
@@ -56,6 +61,9 @@ TT_GLOBAL_EXECUTE = false
 TT_MODULO = "MODULO"
 TT_OPEN_BRAK = "OPEN BRAK"
 TT_CLOSE_BRAK = "CLOSE BRAK"
+TT_ALANG_SA = "ALANG SA"
+TT_LEFT_PAREN = "("
+TT_RIGHT_PAREN = ")"
 
 
 let keywords = [TT_SUGOD, TT_KATAPUSAN]
@@ -200,6 +208,16 @@ class Lexer {
                 tokens.push(newtoken)
                 this.indx += 1
             }
+            else if (this.text[this.indx] == "(") {
+                let newtoken = new Token(this.text[this.indx], TT_LEFT_PAREN)
+                tokens.push(newtoken)
+                this.indx += 1
+            }
+            else if (this.text[this.indx] == ")") {
+                let newtoken = new Token(this.text[this.indx], TT_RIGHT_PAREN)
+                tokens.push(newtoken)
+                this.indx += 1
+            }
             else if (this.text[this.indx] == "[") {
                 let newtoken = new Token(this.text[this.indx], TT_OPEN_BRAK)
                 tokens.push(newtoken)
@@ -291,6 +309,21 @@ class Lexer {
                 else if (value == TT_OR) {
                     let newtoken = new Token(value, TT_OR)
                     tokens.push(newtoken)
+                }
+                else if (value == "ALANG") {
+                    let newtoken = new Token(value, TT_IDENTIFIER)
+                    tokens.push(newtoken)
+                }
+                else if (value == "SA") {
+                    if (tokens[tokens.length - 1].value = "ALANG") {
+                        tokens[tokens.length - 1].value = "ALANG SA"
+                        tokens[tokens.length - 1].type = TT_ALANG_SA
+                    }
+                    else {
+                        let newtoken = new Token(value, TT_IDENTIFIER)
+                        tokens.push(newtoken)
+                    }
+
                 }
                 else if (value == TT_NOT) {
                     if (tokens[tokens.length - 1].value == TT_KUNG) {
@@ -452,6 +485,10 @@ class Parser {
                 else if (this.token[this.position].type == TT_KUNG) {
                     this.ifStatement()
                 }
+                else if (this.token[this.position].type == TT_ALANG_SA) {
+                    this.ast.body.push(this.forLoopStatement());
+                    continue;
+                }
                 else if (this.token[this.position].value == TT_KATAPUSAN) {
                     if (this.position + 1 < this.token.length) {
                         throw new Error("Invalid Syntax");
@@ -475,6 +512,145 @@ class Parser {
             throw new Error("ERROR: SUGOD missing");
         }
         return this.ast
+    }
+    forLoopStatement() {
+        this.position++;
+        this.expect(TT_LEFT_PAREN, "ERROR: Gipaabot ang '(' human sa ALANG SA.");
+    
+        
+        const initialization = this.parseForLoopAssignment();
+        this.expect(TT_COMMA, "ERROR: Gipaabot ang ',' human sa inisyalisasyon sa ALANG SA.");
+    
+        
+        const condition = this.parseForLoopCondition();
+        this.expect(TT_COMMA, "ERROR: Gipaabot ang ',' human sa kondisyon sa ALANG SA.");
+    
+        
+        const update = this.parseForLoopAssignment();
+        this.expect(TT_RIGHT_PAREN, "ERROR: Gipaabot ang ')' human sa pag-update sa ALANG SA.");
+        this.expect(TT_NEWLINE, "ERROR: Gipaabot ang bag-ong linya human sa ')' sa ALANG SA.");
+        this.expect(TT_PUNDOK, "ERROR: Gipaabot ang PUNDOK human sa ALANG SA.");
+        this.expect(TT_LEFT_BRAC, "ERROR: Gipaabot ang '{' human sa PUNDOK sa ALANG SA.");
+    
+        const body = [];
+        while (this.position < this.token.length && this.token[this.position].type !== TT_RIGHT_BRAC) {
+            body.push(this.parseStatement()); 
+        }
+        this.expect(TT_RIGHT_BRAC, "ERROR: Gipaabot ang '}' aron tapuson ang PUNDOK sa ALANG SA.");
+    
+        return {
+            "type": "ForLoop",
+            "initialization": initialization,
+            "condition": condition,
+            "update": update,
+            "body": body
+        };
+    }
+    parseForLoopAssignment() {
+        if (this.position >= this.token.length) {
+            throw new Error("ERROR: Wala gipaabot nga katapusan sa token sa ALANG SA inisyalisasyon/update.");
+        }
+        if (this.token[this.position].type !== TT_IDENTIFIER) {
+            throw new Error("ERROR: Gipaabot ang identifier sa inisyalisasyon/update sa ALANG SA.");
+        }
+        const variable = this.token[this.position].value;
+        this.position++;
+        this.expect("=", "ERROR: Gipaabot ang '=' human sa identifier sa inisyalisasyon/update sa ALANG SA.");
+        this.position++; 
+        const valueToken = this.token[this.position];
+        let value;
+        let valueType;
+
+        if (valueToken.type === TT_NUMERO) {
+            value = valueToken.value;
+            valueType = TT_NUMERO;
+        } else if (valueToken.type === TT_IDENTIFIER) {
+            value = valueToken.value;
+            valueType = TT_IDENTIFIER; // Could be a variable
+        } else {
+            throw new Error(`ERROR: Dili balido nga bili sa inisyalisasyon/update sa ALANG SA: ${valueToken.value}`);
+        }
+        this.position++;
+        return {
+            "type": "AssignmentExpression",
+            "variable": variable,
+            "value": value,
+            "valueType": valueType // Store the type for later evaluation
+        };
+    }
+    parseForLoopCondition() {
+        // This is a simplified condition parser. You might need a more robust expression parser here
+        if (this.position >= this.token.length) {
+            throw new Error("ERROR: Wala gipaabot nga katapusan sa token sa ALANG SA kondisyon.");
+        }
+        const left = this.parseForLoopConditionPart();
+        if (this.position >= this.token.length) {
+            return left; // Could be a simple variable as a condition
+        }
+        const operatorToken = this.token[this.position];
+        if (![TT_LESS_THAN, TT_LESS_THAN_OR_EQUAL, TT_GREATER_THAN, TT_GREATER_THAN_OR_EQUAL, TT_EQUAL_TO, TT_NOT_EQUAL].includes(operatorToken.type)) {
+            return left; // No operator, just a variable
+        }
+        this.position++; // Consume operator
+        const right = this.parseForLoopConditionPart();
+        return {
+            "type": "BinaryExpression",
+            "left": left,
+            "operator": operatorToken.value,
+            "right": right
+        };
+    }
+    parseForLoopConditionPart() {
+        if (this.position >= this.token.length) {
+            throw new Error("ERROR: Wala gipaabot nga katapusan sa token sa ALANG SA kondisyon nga bahin.");
+        }
+        const token = this.token[this.position];
+        this.position++;
+        if (token.type === TT_IDENTIFIER) {
+            return { "type": "Variable", "name": token.value };
+        } else if (token.type === TT_NUMERO_LITERAL) {
+            return { "type": "NumberLiteral", "value": token.value };
+        } else {
+            throw new Error(`ERROR: Dili balido nga bahin sa kondisyon sa ALANG SA: ${token.value}`);
+        }
+    }
+    parseStatement() {
+        const currentToken = this.token[this.position];
+        if (currentToken.type == TT_VAR_DEC) {
+            return this.variabelDeclaration();
+        } else if (currentToken.type == TT_IDENTIFIER) {
+            return this.variableAssignement();
+        } else if (currentToken.type == TT_PRINT) {
+            return this.printFunction();
+        } else if (currentToken.type == TT_DAWATA) {
+            return this.inputFunction();
+        } else if (currentToken.type == TT_KUNG) {
+            this.ifStatement(); // Note: ifStatement might need to return an AST node later
+            return null; // Or handle this differently based on your AST structure
+        } else if (currentToken.type == TT_ALANG_SA) {
+            return this.forLoopStatement();
+        }
+        // ... (other statement types) ...
+        else {
+            throw new Error(`ERROR: Dili mailhang sinugdanan sa pahayag: ${currentToken.value}`);
+        }
+    }   
+    expect(typeOrValue, message) {
+        if (this.position >= this.token.length) {
+            throw new Error("ERROR: Wala gipaabot nga katapusan sa token. " + message);
+        }
+        const currentToken = this.token[this.position];
+        if (typeof typeOrValue === 'string') {
+            if (currentToken.value !== typeOrValue) {
+                throw new Error(`${message} Nakit-an: '${currentToken.value}' (${currentToken.type}) sa posisyon ${this.position}.`);
+            }
+        } else {
+            if (currentToken.type !== typeOrValue) {
+                throw new Error(`${message} Nakit-an: '${currentToken.value}' (${currentToken.type}) sa posisyon ${this.position}.`);
+            }
+        }
+        this.position++;
+        return currentToken;
     }
     variabelDeclaration() {
         let vardec = { "type": null, "dataType": null, "variables": [] }
@@ -1519,12 +1695,121 @@ class Interpreter {
             else if (nodes["type"] == "InputFunction") {
                 this.executeInputFunction(nodes)
             }
+            else if (nodes["type"] == "ForLoop") {
+                this.executeForLoop(nodes);
+            }
             else {
 
             }
         }
     }
-
+    executeForLoop(node) {
+        // Execute initialization
+        this.executeForLoopAssignment(node.initialization);
+    
+        while (this.evaluateForLoopCondition(node.condition)) {
+            // Execute the body of the loop
+            for (let bodyNode of node.body) {
+                this.executeStatement(bodyNode); // Create a general executeStatement method
+            }
+            // Execute the update
+            this.executeForLoopAssignment(node.update);
+        }
+    }
+    executeForLoopAssignment(assignmentNode) {
+        const variableName = assignmentNode.variable;
+        const value = assignmentNode.value;
+        const valueType = assignmentNode.valueType;
+    
+        let existingVarIndex = this.memory.findIndex(variable => variable["name"] === variableName);
+        if (existingVarIndex !== -1) {
+            let newValue;
+            if (valueType === TT_NUMERO) {
+                newValue = parseInt(value);
+            } else if (valueType === TT_IDENTIFIER) {
+                const sourceVar = this.memory.find(variable => variable["name"] === value);
+                if (!sourceVar || (sourceVar.datatype !== TT_NUMERO && sourceVar.datatype !== TT_TIPIK)) {
+                    throw new Error(`ERROR: Ang bili sa '${value}' kinahanglanon nga numero sa ALANG SA loop.`);
+                }
+                newValue = parseInt(sourceVar.value);
+            } else {
+                throw new Error(`ERROR: Dili balido nga bili sa pag-update sa ALANG SA loop.`);
+            }
+    
+            if (this.memory[existingVarIndex].datatype === TT_NUMERO) {
+                this.memory[existingVarIndex].value = newValue + "";
+            } else if (this.memory[existingVarIndex].datatype === TT_TIPIK) {
+                this.memory[existingVarIndex].value = formatNumber(newValue + "");
+            } else {
+                throw new Error(`ERROR: Ang variable '${variableName}' kinahanglanon nga numero sa ALANG SA loop.`);
+            }
+        } else {
+            throw new Error(`ERROR: Wala mailhang variable '${variableName}' sa ALANG SA loop.`);
+        }
+    }
+    
+    evaluateForLoopCondition(conditionNode) {
+        if (!conditionNode) {
+            return true; // If no condition, loop indefinitely (be careful!)
+        }
+        if (conditionNode.type === "Variable") {
+            const variable = this.memory.find(v => v.name === conditionNode.name);
+            return variable && (variable.value == "OO" || parseInt(variable.value) !== 0); // Treat variable existence or non-zero number as true
+        } else if (conditionNode.type === "NumberLiteral") {
+            return parseInt(conditionNode.value) !== 0;
+        } else if (conditionNode.type === "BinaryExpression") {
+            const leftValue = this.getConditionValue(conditionNode.left);
+            const rightValue = this.getConditionValue(conditionNode.right);
+            const operator = conditionNode.operator;
+    
+            if (typeof leftValue !== 'number' || typeof rightValue !== 'number') {
+                throw new Error("ERROR: Ang mga operasyon sa pagtandi sa ALANG SA loop kinahanglanon nga numero.");
+            }
+    
+            switch (operator) {
+                case "<": return leftValue < rightValue;
+                case "<=": return leftValue <= rightValue;
+                case ">": return leftValue > rightValue;
+                case ">=": return leftValue >= rightValue;
+                case "==": return leftValue == rightValue;
+                case "!=": return leftValue != rightValue;
+                default: throw new Error(`ERROR: Dili mailhang operator sa pagtandi: ${operator}`);
+            }
+        }
+        return false;
+    }
+    
+    getConditionValue(node) {
+        if (node.type === "Variable") {
+            const variable = this.memory.find(v => v.name === node.name);
+            if (!variable || (variable.datatype !== TT_NUMERO && variable.datatype !== TT_TIPIK)) {
+                throw new Error(`ERROR: Ang variable '${node.name}' kinahanglanon nga numero sa kondisyon sa ALANG SA loop.`);
+            }
+            return parseInt(variable.value);
+        } else if (node.type === "NumberLiteral") {
+            return parseInt(node.value);
+        } else {
+            throw new Error(`ERROR: Dili balido nga bahin sa kondisyon: ${JSON.stringify(node)}`);
+        }
+    }
+    executeStatement(node) {
+        if (node["type"] == 'VariableDeclaration') {
+            this.executeVariableDeclaration(node);
+        } else if (node["type"] == "VariableAssignment") {
+            this.executeVariableAssignment(node);
+        } else if (node["type"] == "PrintFunction") {
+            let stringexec = this.executePrintFunction(node);
+            const result = stringexec.replaceAll('"', '').replaceAll("'", '');
+            console.log(result);
+        } else if (node["type"] == "InputFunction") {
+            this.executeInputFunction(node);
+        } else if (node["type"] == "IfStatement") {
+            // Implement this later
+        } else if (node["type"] == "ForLoop") {
+            this.executeForLoop(node);
+        }
+        // ... (other statement types) ...
+    }
     executeVariableDeclaration(nodes) {
         let datatypehold = nodes["dataType"]
         for (let varhold of nodes["variables"]) {
